@@ -1,685 +1,101 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Kuromi — Attack Telemetry</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        :root {
-            --pink: #ff2d95;
-            --purple: #7c3aed;
-            --cyan: #00d4ff;
-            --green: #00ff88;
-            --bg: #06060e;
-            --card: #0d0d1a;
-            --text: #e0e0ff;
-            --dim: #5555aa;
-            --glow-pink: 0 0 30px rgba(255,45,149,0.15);
-            --glow-purple: 0 0 30px rgba(124,58,237,0.15);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--bg);
-            color: var(--text);
-            min-height: 100vh;
-            overflow: hidden;
-        }
-
-        /* ===== MATRIX RAIN CANVAS ===== */
-        #matrixCanvas {
-            position: fixed;
-            top: 0; left: 0;
-            width: 100vw; height: 100vh;
-            z-index: 0;
-            pointer-events: none;
-            opacity: 0.15;
-        }
-
-        /* ===== CYBER GRID ===== */
-        .cyber-grid {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-image:
-                linear-gradient(rgba(124,58,237,0.04) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(124,58,237,0.04) 1px, transparent 1px);
-            background-size: 80px 80px;
-            z-index: 0;
-            pointer-events: none;
-            perspective: 600px;
-            transform: rotateX(4deg);
-            transform-origin: bottom;
-        }
-
-        /* ===== SCANLINES ===== */
-        .scanlines {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: repeating-linear-gradient(
-                0deg, transparent, transparent 2px,
-                rgba(0,0,0,0.08) 2px, rgba(0,0,0,0.08) 4px
-            );
-            pointer-events: none;
-            z-index: 3;
-        }
-
-        /* ===== AMBIENT GLOW SPOTS ===== */
-        .ambient {
-            position: fixed;
-            border-radius: 50%;
-            filter: blur(120px);
-            pointer-events: none;
-            z-index: 0;
-        }
-        .ambient.a1 { width: 600px; height: 600px; top: -200px; left: -200px; background: rgba(255,45,149,0.06); }
-        .ambient.a2 { width: 500px; height: 500px; bottom: -150px; right: -150px; background: rgba(124,58,237,0.06); }
-        .ambient.a3 { width: 400px; height: 400px; top: 50%; left: 50%; transform: translate(-50%,-50%); background: rgba(0,212,255,0.04); }
-
-        /* ===== TOP BAR ===== */
-        .topbar {
-            position: relative; z-index: 2;
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 18px 36px;
-            border-bottom: 1px solid rgba(124,58,237,0.12);
-            background: rgba(6,6,14,0.7);
-            backdrop-filter: blur(20px);
-        }
-        .brand {
-            display: flex; align-items: center; gap: 18px;
-        }
-        .logo-box {
-            width: 44px; height: 44px;
-            border-radius: 12px;
-            display: flex; align-items: center; justify-content: center;
-            position: relative;
-            background: linear-gradient(135deg, rgba(255,45,149,0.15), rgba(124,58,237,0.15));
-            border: 1px solid rgba(255,45,149,0.2);
-        }
-        .logo-box::before {
-            content: ''; position: absolute;
-            inset: -2px; border-radius: 14px;
-            background: conic-gradient(var(--pink), var(--purple), var(--cyan), var(--pink));
-            z-index: -1;
-            animation: spinBorder 4s linear infinite;
-            opacity: 0.5;
-        }
-        @keyframes spinBorder { to { transform: rotate(360deg); } }
-        .logo-box span {
-            font-family: 'Orbitron', monospace;
-            font-weight: 900; font-size: 20px;
-            background: linear-gradient(135deg, var(--pink), var(--cyan));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .title-block h1 {
-            font-family: 'Orbitron', monospace;
-            font-weight: 900; font-size: 24px;
-            letter-spacing: 4px;
-        }
-        .title-block h1 .char { display: inline-block; }
-        .title-block .sub {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 10px; letter-spacing: 6px;
-            color: var(--dim); text-transform: uppercase;
-        }
-
-        .status-panel {
-            display: flex; align-items: center; gap: 16px;
-        }
-        .honeypot-status {
-            display: flex; align-items: center; gap: 8px;
-            padding: 6px 16px;
-            border-radius: 20px;
-            border: 1px solid rgba(0,255,136,0.15);
-            background: rgba(0,255,136,0.03);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px; color: var(--green);
-            letter-spacing: 1px;
-            position: relative;
-        }
-        .honeypot-status .dot {
-            width: 7px; height: 7px;
-            border-radius: 50%;
-            background: var(--green);
-            animation: pulseDot 2s ease-in-out infinite;
-        }
-        @keyframes pulseDot {
-            0%,100% { box-shadow: 0 0 6px var(--green); opacity: 1; }
-            50% { box-shadow: 0 0 20px var(--green); opacity: 0.7; }
-        }
-        .honeypot-status .pulse-ring {
-            position: absolute;
-            inset: -3px; border-radius: 22px;
-            border: 1px solid rgba(0,255,136,0.15);
-            animation: pulseRing 2s ease-out infinite;
-        }
-        @keyframes pulseRing {
-            0% { transform: scale(1); opacity: 1; }
-            100% { transform: scale(1.3); opacity: 0; }
-        }
-        .port-badge {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px; color: var(--dim);
-            padding: 6px 12px;
-            border-radius: 6px;
-            background: rgba(124,58,237,0.08);
-            border: 1px solid rgba(124,58,237,0.12);
-        }
-
-        /* ===== MAIN LAYOUT ===== */
-        .main {
-            position: relative; z-index: 1;
-            padding: 24px 36px 0;
-            max-width: 1600px; margin: 0 auto;
-            height: calc(100vh - 82px);
-            display: flex; flex-direction: column;
-            gap: 16px;
-        }
-
-        /* ===== TOP STATS ROW ===== */
-        .stats-row {
-            display: grid;
-            grid-template-columns: repeat(8, 1fr);
-            gap: 10px;
-        }
-        .stat-pill {
-            background: rgba(13,13,26,0.7);
-            border: 1px solid rgba(124,58,237,0.08);
-            border-radius: 12px;
-            padding: 12px 10px;
-            text-align: center;
-            backdrop-filter: blur(8px);
-            transition: all 0.25s ease;
-            position: relative;
-            overflow: hidden;
-        }
-        .stat-pill:hover {
-            border-color: rgba(255,45,149,0.2);
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(255,45,149,0.08);
-        }
-        .stat-pill .num {
-            font-family: 'Orbitron', monospace;
-            font-weight: 700; font-size: 22px;
-            line-height: 1;
-            margin-bottom: 3px;
-            transition: all 0.3s;
-        }
-        .stat-pill .num.pink { color: var(--pink); }
-        .stat-pill .num.purple { color: var(--purple); }
-        .stat-pill .num.cyan { color: var(--cyan); }
-        .stat-pill .num.green { color: var(--green); }
-        .stat-pill .num.orange { color: #ff8800; }
-        .stat-pill .num.red { color: #ff4444; }
-        .stat-pill .lbl {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 9px; color: var(--dim);
-            text-transform: uppercase; letter-spacing: 2px;
-        }
-        .stat-pill .glow-bar {
-            position: absolute;
-            bottom: 0; left: 0; height: 2px;
-            border-radius: 0 0 12px 12px;
-            transition: width 0.6s ease;
-            opacity: 0.6;
-        }
-
-        /* ===== CHARTS AREA ===== */
-        .charts-area {
-            display: grid;
-            grid-template-columns: 1.4fr 1fr 1fr;
-            gap: 10px;
-            flex: 1;
-            min-height: 0;
-        }
-        .chart-panel {
-            background: rgba(13,13,26,0.5);
-            border: 1px solid rgba(124,58,237,0.06);
-            border-radius: 14px;
-            padding: 16px;
-            backdrop-filter: blur(8px);
-            display: flex; flex-direction: column;
-        }
-        .chart-panel .panel-head {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 10px;
-        }
-        .chart-panel .panel-head h3 {
-            font-family: 'Orbitron', monospace;
-            font-size: 11px; color: var(--dim);
-            letter-spacing: 2px; text-transform: uppercase;
-        }
-        .chart-panel .panel-head .live-dot {
-            width: 5px; height: 5px;
-            border-radius: 50%;
-            animation: pulseDot 2s ease-in-out infinite;
-        }
-        .chart-panel .chart-wrap {
-            flex: 1;
-            position: relative;
-            min-height: 0;
-        }
-        .chart-panel .chart-wrap canvas {
-            width: 100% !important;
-            height: 100% !important;
-        }
-
-        /* ===== TABLES AREA ===== */
-        .tables-row {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            height: 0;
-            flex: 0.65;
-            min-height: 0;
-        }
-        .table-panel {
-            background: rgba(13,13,26,0.5);
-            border: 1px solid rgba(124,58,237,0.06);
-            border-radius: 14px;
-            padding: 12px 14px;
-            backdrop-filter: blur(8px);
-            display: flex; flex-direction: column;
-            overflow: hidden;
-        }
-        .table-panel h3 {
-            font-family: 'Orbitron', monospace;
-            font-size: 10px; color: var(--dim);
-            letter-spacing: 2px; text-transform: uppercase;
-            margin-bottom: 8px;
-        }
-        .table-panel .scroll-wrap {
-            flex: 1;
-            overflow-y: auto;
-            min-height: 0;
-        }
-        .table-panel .scroll-wrap::-webkit-scrollbar { width: 3px; }
-        .table-panel .scroll-wrap::-webkit-scrollbar-track { background: transparent; }
-        .table-panel .scroll-wrap::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.3); border-radius: 2px; }
-
-        .mini-table { width: 100%; border-collapse: collapse; }
-        .mini-table th {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 8px; color: rgba(85,85,170,0.5);
-            text-transform: uppercase; letter-spacing: 1px;
-            padding: 4px 6px; text-align: left;
-            border-bottom: 1px solid rgba(124,58,237,0.05);
-            position: sticky; top: 0;
-            background: rgba(13,13,26,0.95);
-        }
-        .mini-table td {
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 11px;
-            padding: 5px 6px;
-            border-bottom: 1px solid rgba(124,58,237,0.03);
-        }
-        .mini-table tr:hover td { background: rgba(124,58,237,0.04); }
-        .mini-table .idx { color: var(--dim); font-size: 9px; width: 22px; }
-        .mini-table .val { color: var(--cyan); }
-        .mini-table .count { text-align: right; font-family: 'Orbitron', monospace; font-size: 12px; min-width: 28px; }
-        .mini-table .bar-bg {
-            display: inline-block;
-            height: 3px; border-radius: 2px;
-            margin-left: 6px;
-            vertical-align: middle;
-        }
-
-        /* ===== SCROLLBAR GLOBAL ===== */
-        ::-webkit-scrollbar { width: 4px; }
-        ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(124,58,237,0.2); border-radius: 2px; }
-
-        /* ===== RESPONSIVE ===== */
-        @media (max-width: 1100px) {
-            .stats-row { grid-template-columns: repeat(4, 1fr); }
-            .charts-area { grid-template-columns: 1fr 1fr; }
-            .tables-row { grid-template-columns: repeat(2, 1fr); }
-        }
-        @media (max-width: 700px) {
-            .topbar { flex-direction: column; gap: 10px; padding: 12px 16px; }
-            .main { padding: 12px 16px; }
-            .stats-row { grid-template-columns: repeat(2, 1fr); }
-            .charts-area { grid-template-columns: 1fr; }
-            .tables-row { grid-template-columns: 1fr; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Kuromi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
+:root{--bg:#0b0b12;--bg2:#111118;--card:#16161f;--bd:#1e1e2e;--bd2:#2a2a3e;--txt:#e2e2f0;--dim:#7878a0;--dim2:#484868;--pink:#ff2d95;--purple:#7c3aed;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c}
+body{background:var(--bg);color:var(--txt)}
+::-webkit-scrollbar{width:4px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--dim2);border-radius:2px}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:56px;border-bottom:1px solid var(--bd);background:var(--bg2)}
+.nav-l{display:flex;align-items:center;gap:12px}
+.nav-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px;color:#fff}
+.nav-t{font-size:15px;font-weight:600;color:var(--txt)}
+.nav-t span{color:var(--dim);font-weight:400}
+.nav-r{display:flex;align-items:center;gap:16px}
+.nav-b{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(74,222,128,0.08);color:var(--green);border:1px solid rgba(74,222,128,0.12)}
+.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
+.nav-p{padding:4px 10px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.1)}
+.app{padding:24px 32px 0;max-width:1440px;margin:0 auto;height:calc(100vh - 56px);display:flex;flex-direction:column;gap:16px}
+.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
+.stat{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 12px;transition:all .12s}
+.stat:hover{border-color:var(--bd2);background:var(--bg2)}
+.sn{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1.2;font-feature-settings:'tnum'1}
+.s1{color:var(--cyan)}.s2{color:var(--red)}.s3{color:var(--orange)}.s4{color:var(--pink)}.s5{color:var(--purple)}.s6{color:var(--green)}
+.sl{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.3px}
+.cr{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px;flex:1;min-height:0}
+.cp{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;display:flex;flex-direction:column}
+.cp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+.cp-h h3{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.3px}
+.cp-h .t{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim2);background:var(--bg);padding:2px 8px;border-radius:4px}
+.cp-b{flex:1;position:relative;min-height:0}
+.cp-b canvas{width:100%!important;height:100%!important}
+.tr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;height:0;flex:.55;min-height:0}
+.tp{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;display:flex;flex-direction:column}
+.tp h3{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:8px;letter-spacing:.3px}
+.ts{flex:1;overflow-y:auto;min-height:0}
+table{width:100%;border-collapse:collapse}
+th{font-size:10px;color:var(--dim2);font-weight:500;padding:4px 6px;text-align:left;border-bottom:1px solid var(--bd);font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:var(--card)}
+td{font-size:12px;padding:5px 6px;border-bottom:1px solid rgba(30,30,46,.4);font-family:'JetBrains Mono',monospace}
+tr:hover td{background:rgba(30,30,46,.3)}
+.ti{color:var(--dim2);font-size:10px;width:24px}
+.tv{color:var(--cyan)}
+.tn{text-align:right;font-weight:600}
+.tb{display:inline-block;height:3px;border-radius:2px;margin-left:6px;vertical-align:middle}
+</style>
 </head>
 <body>
-
-    <!-- Matrix Rain -->
-    <canvas id="matrixCanvas"></canvas>
-
-    <!-- Background Effects -->
-    <div class="cyber-grid"></div>
-    <div class="ambient a1"></div>
-    <div class="ambient a2"></div>
-    <div class="ambient a3"></div>
-    <div class="scanlines"></div>
-
-    <!-- ===== TOPBAR ===== -->
-    <div class="topbar">
-        <div class="brand">
-            <div class="logo-box"><span>K</span></div>
-            <div class="title-block">
-                <h1 id="title"></h1>
-                <div class="sub">Attack Telemetry System</div>
-            </div>
-        </div>
-        <div class="status-panel">
-            <div class="honeypot-status">
-                <span class="pulse-ring"></span>
-                <span class="dot"></span> LIVE
-            </div>
-            <div class="port-badge">SSH :2222</div>
-        </div>
-    </div>
-
-    <!-- ===== MAIN ===== -->
-    <div class="main">
-
-        <!-- Stats Row -->
-        <div class="stats-row" id="statsRow"></div>
-
-        <!-- Charts -->
-        <div class="charts-area">
-            <div class="chart-panel">
-                <div class="panel-head">
-                    <h3>Attack Timeline</h3>
-                    <span class="live-dot" style="background:var(--cyan)"></span>
-                </div>
-                <div class="chart-wrap"><canvas id="chartTimeline"></canvas></div>
-            </div>
-            <div class="chart-panel">
-                <div class="panel-head">
-                    <h3>Top Usernames</h3>
-                    <span class="live-dot" style="background:var(--pink)"></span>
-                </div>
-                <div class="chart-wrap"><canvas id="chartUsers"></canvas></div>
-            </div>
-            <div class="chart-panel">
-                <div class="panel-head">
-                    <h3>Top Passwords</h3>
-                    <span class="live-dot" style="background:var(--purple)"></span>
-                </div>
-                <div class="chart-wrap"><canvas id="chartPasswords"></canvas></div>
-            </div>
-        </div>
-
-        <!-- Tables -->
-        <div class="tables-row">
-            <div class="table-panel">
-                <h3>Attacker IPs</h3>
-                <div class="scroll-wrap"><table class="mini-table"><thead><tr><th></th><th>IP</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbodyIP"></tbody></table></div>
-            </div>
-            <div class="table-panel">
-                <h3>Usernames</h3>
-                <div class="scroll-wrap"><table class="mini-table"><thead><tr><th></th><th>User</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbodyUsers"></tbody></table></div>
-            </div>
-            <div class="table-panel">
-                <h3>Passwords</h3>
-                <div class="scroll-wrap"><table class="mini-table"><thead><tr><th></th><th>Password</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbodyPasswords"></tbody></table></div>
-            </div>
-            <div class="table-panel">
-                <h3>Commands</h3>
-                <div class="scroll-wrap"><table class="mini-table"><thead><tr><th></th><th>Command</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbodyCommands"></tbody></table></div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-    // ============================================================
-    //  1. MATRIX RAIN
-    // ============================================================
-    const mc = document.getElementById('matrixCanvas');
-    const mctx = mc.getContext('2d');
-    let mW, mH, drops, fontSize = 14;
-    function resizeMatrix() {
-        mW = mc.width = window.innerWidth;
-        mH = mc.height = window.innerHeight;
-        const cols = Math.floor(mW / fontSize);
-        drops = Array(cols).fill(1);
-    }
-    resizeMatrix();
-    window.addEventListener('resize', resizeMatrix);
-
-    const chars = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789<>/{}[]|&^%$#@!';
-    function drawMatrix() {
-        mctx.fillStyle = 'rgba(6,6,14,0.05)';
-        mctx.fillRect(0, 0, mW, mH);
-        mctx.font = fontSize + 'px monospace';
-        for (let i = 0; i < drops.length; i++) {
-            const c = chars[Math.floor(Math.random() * chars.length)];
-            const x = i * fontSize;
-            const y = drops[i] * fontSize;
-            // Gradient from pink to purple
-            const grad = mctx.createLinearGradient(x, y - 20, x, y + 20);
-            grad.addColorStop(0, 'rgba(255,45,149,0)');
-            grad.addColorStop(0.5, 'rgba(255,45,149,0.3)');
-            grad.addColorStop(1, 'rgba(124,58,237,0)');
-            mctx.fillStyle = grad;
-            mctx.fillText(c, x, y);
-            if (y > mH && Math.random() > 0.975) drops[i] = 0;
-            drops[i]++;
-        }
-        requestAnimationFrame(drawMatrix);
-    }
-    drawMatrix();
-
-    // ============================================================
-    //  2. TYPEWRITER TITLE
-    // ============================================================
-    (function typewriter() {
-        const el = document.getElementById('title');
-        const text = 'KUROMI';
-        let i = 0;
-        el.innerHTML = '';
-        function tick() {
-            if (i < text.length) {
-                const span = document.createElement('span');
-                span.className = 'char';
-                span.textContent = text[i];
-                const colors = ['#ff2d95','#7c3aed','#00d4ff','#00ff88','#ff2d95','#7c3aed'];
-                span.style.background = 'linear-gradient(135deg,' + colors.slice(i,i+2).join(',') + ')';
-                span.style.webkitBackgroundClip = 'text';
-                span.style.webkitTextFillColor = 'transparent';
-                span.style.backgroundClip = 'text';
-                el.appendChild(span);
-                i++;
-                setTimeout(tick, 120);
-            }
-        }
-        tick();
-    })();
-
-    // ============================================================
-    //  3. ANIMATE NUMBER
-    // ============================================================
-    function animateNum(el, target, duration) {
-        if (!el) return;
-        const start = parseInt(el.textContent) || 0;
-        const diff = target - start;
-        if (diff === 0) { el.textContent = target; return; }
-        const steps = 20;
-        let step = 0;
-        const interval = setInterval(() => {
-            step++;
-            const val = Math.round(start + (diff * (step / steps)));
-            el.textContent = val + (el.dataset.suffix || '');
-            if (step >= steps) { clearInterval(interval); el.textContent = target + (el.dataset.suffix || ''); }
-        }, 30);
-    }
-
-    // ============================================================
-    //  4. BUILD STATS
-    // ============================================================
-    function buildStats(stats) {
-        const row = document.getElementById('statsRow');
-        const items = [
-            { key: 'sessions', label: 'Sessions', color: 'cyan', glow: '#00d4ff' },
-            { key: 'auth_failed', label: 'Failed Logins', color: 'red', glow: '#ff4444' },
-            { key: 'auth_success', label: 'Compromised', color: 'orange', glow: '#ff8800' },
-            { key: 'commands', label: 'Commands', color: 'pink', glow: '#ff2d95' },
-            { key: 'downloads', label: 'Downloads', color: 'purple', glow: '#7c3aed' },
-            { key: 'unique_ips', label: 'Attackers', color: 'purple', glow: '#7c3aed' },
-            { key: 'unique_usernames', label: 'Usernames', color: 'cyan', glow: '#00d4ff' },
-            { key: 'auth_rate', label: 'Auth Rate', color: 'green', glow: '#00ff88', suffix: '%' },
-        ];
-        const maxVal = Math.max(...items.map(i => stats[i.key] || 0), 1);
-        row.innerHTML = items.map(item => {
-            const val = stats[item.key] || 0;
-            const pct = (val / maxVal) * 100;
-            return `<div class="stat-pill">
-                <div class="num ${item.color}" data-target="${val}" data-suffix="${item.suffix||''}">0${item.suffix||''}</div>
-                <div class="lbl">${item.label}</div>
-                <div class="glow-bar" style="width:${pct}%;background:${item.glow}"></div>
-            </div>`;
-        }).join('');
-
-        // Animate numbers
-        requestAnimationFrame(() => {
-            document.querySelectorAll('.stat-pill .num').forEach((el, i) => {
-                const target = parseInt(el.dataset.target);
-                animateNum(el, target, 600);
-            });
-        });
-    }
-
-    // ============================================================
-    //  5. CHARTS
-    // ============================================================
-    function makeChart(id, type, labels, values, color) {
-        const canvas = document.getElementById(id);
-        if (!canvas) return null;
-        const ctx = canvas.getContext('2d');
-        const parent = canvas.parentElement;
-        canvas.width = parent.clientWidth * 2;
-        canvas.height = parent.clientHeight * 2;
-        canvas.style.width = parent.clientWidth + 'px';
-        canvas.style.height = parent.clientHeight + 'px';
-
-        const grad = ctx.createLinearGradient(0, 0, 0, parent.clientHeight * 2);
-        grad.addColorStop(0, color + '50');
-        grad.addColorStop(1, color + '02');
-
-        return new Chart(ctx, {
-            type: type,
-            data: {
-                labels: labels,
-                datasets: [{
-                    label: '',
-                    data: values,
-                    backgroundColor: type === 'line' ? grad : color + '25',
-                    borderColor: color,
-                    borderWidth: type === 'line' ? 2 : 1,
-                    pointBorderColor: color,
-                    pointBackgroundColor: color + '99',
-                    pointRadius: type === 'line' ? 2.5 : 0,
-                    pointHoverRadius: 5,
-                    fill: type === 'line',
-                    borderRadius: 3,
-                    tension: 0.3,
-                }]
-            },
-            options: {
-                animation: { duration: 400 },
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: { legend: { display: false }, tooltip: { enabled: true, backgroundColor: 'rgba(13,13,26,0.9)', titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, borderColor: color, borderWidth: 1 } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: 'rgba(124,58,237,0.05)' }, ticks: { color: '#5555aa', font: { family: 'JetBrains Mono', size: 9 }, maxTicksLimit: 5 } },
-                    x: { grid: { display: false }, ticks: { color: '#5555aa', font: { family: 'JetBrains Mono', size: 8 }, maxTicksLimit: 8 } }
-                }
-            }
-        });
-    }
-
-    // ============================================================
-    //  6. TABLES
-    // ============================================================
-    function fillTable(tbody, items, labelKey, countKey, color) {
-        if (!tbody) return;
-        const maxC = items.length > 0 ? Math.max(...items.map(i => i[countKey])) : 1;
-        tbody.innerHTML = items.map((item, i) => {
-            const pct = (item[countKey] / maxC) * 100;
-            return `<tr>
-                <td class="idx">${String(i+1).padStart(2,'0')}</td>
-                <td class="val">${item[labelKey]}</td>
-                <td class="count">${item[countKey]} <span class="bar-bg" style="width:${Math.min(pct,60)}px;background:${color}"></span></td>
-            </tr>`;
-        }).join('');
-    }
-
-    // ============================================================
-    //  7. REFRESH
-    // ============================================================
-    let charts = {};
-
-    async function refresh() {
-        try {
-            const resp = await fetch('/api/stats');
-            const data = await resp.json();
-            if (data.error) return;
-
-            const s = data.stats;
-
-            // Stats
-            if (!document.getElementById('statsRow').children.length) buildStats(s);
-            else {
-                document.querySelectorAll('.stat-pill .num').forEach((el, i) => {
-                    const targets = [s.sessions, s.auth_failed, s.auth_success, s.commands, s.downloads, s.unique_ips, s.unique_usernames, s.auth_rate];
-                    const suffix = el.dataset.suffix || '';
-                    if (i < targets.length && parseInt(el.textContent) !== targets[i]) {
-                        el.dataset.target = targets[i];
-                        animateNum(el, targets[i], 400);
-                    }
-                });
-                // Update glow bars
-                const vals = [s.sessions, s.auth_failed, s.auth_success, s.commands, s.downloads, s.unique_ips, s.unique_usernames, s.auth_rate];
-                const maxV = Math.max(...vals, 1);
-                document.querySelectorAll('.stat-pill .glow-bar').forEach((bar, i) => {
-                    bar.style.width = (vals[i] / maxV * 100) + '%';
-                });
-            }
-
-            // Charts
-            if (charts.timeline) charts.timeline.destroy();
-            if (charts.users) charts.users.destroy();
-            if (charts.passwords) charts.passwords.destroy();
-
-            const tl = data.timeline || [];
-            charts.timeline = makeChart('chartTimeline', 'line', tl.map(p => p.hour), tl.map(p => p.count), '#00d4ff');
-            const users = data.top_usernames || [];
-            charts.users = makeChart('chartUsers', 'bar', users.map(u => u.username.length > 10 ? u.username.slice(0,10)+'..' : u.username), users.map(u => u.count), '#ff2d95');
-            const pwds = data.top_passwords || [];
-            charts.passwords = makeChart('chartPasswords', 'bar', pwds.map(p => p.password.length > 10 ? p.password.slice(0,10)+'..' : p.password), pwds.map(p => p.count), '#7c3aed');
-
-            // Tables
-            fillTable(document.getElementById('tbodyIP'), data.top_ips || [], 'ip', 'count', '#7c3aed');
-            fillTable(document.getElementById('tbodyUsers'), data.top_usernames || [], 'username', 'count', '#ff2d95');
-            fillTable(document.getElementById('tbodyPasswords'), data.top_passwords || [], 'password', 'count', '#00d4ff');
-            fillTable(document.getElementById('tbodyCommands'), data.top_commands || [], 'command', 'count', '#00ff88');
-
-        } catch(e) { console.error('refresh error', e); }
-    }
-
-    // ============================================================
-    //  8. INIT
-    // ============================================================
-    refresh();
-    setInterval(refresh, 5000);
-
-    // Handle resize for charts
-    let resizeTimer;
-    window.addEventListener('resize', () => {
-        clearTimeout(resizeTimer);
-        resizeTimer = setTimeout(refresh, 500);
-    });
-    </script>
+<div class="nav"><div class="nav-l"><div class="nav-logo">K</div><div class="nav-t">Kuromi <span>/ Attack Telemetry</span></div></div><div class="nav-r"><div class="nav-b"><span class="nav-dot"></span> Capturing</div><div class="nav-p">:2222</div></div></div>
+<div class="app">
+<div class="stats" id="statsRow"></div>
+<div class="cr">
+<div class="cp"><div class="cp-h"><h3>Attack Timeline</h3><span class="t">hourly</span></div><div class="cp-b"><canvas id="c0"></canvas></div></div>
+<div class="cp"><div class="cp-h"><h3>Top Usernames</h3><span class="t">credentials</span></div><div class="cp-b"><canvas id="c1"></canvas></div></div>
+<div class="cp"><div class="cp-h"><h3>Top Passwords</h3><span class="t">credentials</span></div><div class="cp-b"><canvas id="c2"></canvas></div></div>
+</div>
+<div class="tr">
+<div class="tp"><h3>Attacker IPs</h3><div class="ts"><table><thead><tr><th></th><th>IP</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t0"></tbody></table></div></div>
+<div class="tp"><h3>Usernames</h3><div class="ts"><table><thead><tr><th></th><th>User</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t1"></tbody></table></div></div>
+<div class="tp"><h3>Passwords</h3><div class="ts"><table><thead><tr><th></th><th>Password</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t2"></tbody></table></div></div>
+<div class="tp"><h3>Commands</h3><div class="ts"><table><thead><tr><th></th><th>Command</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t3"></tbody></table></div></div>
+</div>
+</div>
+<script>
+const M=[
+{id:"sessions",l:"Sessions",c:"s1"},
+{id:"auth_failed",l:"Failed Logins",c:"s2"},
+{id:"auth_success",l:"Compromised",c:"s3"},
+{id:"commands",l:"Commands",c:"s4"},
+{id:"downloads",l:"Downloads",c:"s5"},
+{id:"unique_ips",l:"Attackers",c:"s6"},
+{id:"unique_usernames",l:"Usernames Tried",c:"s1"},
+{id:"auth_rate",l:"Auth Rate",c:"s6",x:"%"}
+];
+const C={c:"#38bdf8",p:"#ff2d95",u:"#7c3aed"};
+function $(s){return document.querySelector(s)}
+function $$(s){return document.querySelectorAll(s)}
+function anim(e,t,d){if(!e)return;let s=parseInt(e.textContent)||0,o=t-s;if(o===0){e.textContent=t;return}let n=Math.min(Math.abs(o)*2,30),i=0,c=setInterval(()=>{i++;e.textContent=Math.round(s+o*(i/n));if(i>=n){clearInterval(c);e.textContent=t}},d/n)}
+function stats(st){let r=document.getElementById("statsRow"),v=M.map(m=>st[m.id]||0);r.innerHTML=M.map((m,i)=>'<div class="stat"><div class="sn '+m.c+'">0'+(m.x||"")+'</div><div class="sl">'+m.l+"</div></div>").join("");requestAnimationFrame(()=>{$$(".sn").forEach((e,i)=>{if(i<v.length)anim(e,v[i]||0,600)})})}
+function charts(d){
+["c0","c1","c2"].forEach(id=>{let c=document.getElementById(id);if(!c)return;let p=c.parentElement;c.width=p.clientWidth*2;c.height=p.clientHeight*2;c.style.width=p.clientWidth+"px";c.style.height=p.clientHeight+"px"});
+let tl=d.timeline||[];
+new Chart($("#c0"),{type:"line",data:{labels:tl.map(p=>p.hour),datasets:[{data:tl.map(p=>p.count),borderColor:C.c,backgroundColor:function(ctx){let g=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,"rgba(56,189,248,0.12)");g.addColorStop(1,"rgba(56,189,248,0)");return g},borderWidth:1.5,pointRadius:2,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(56,189,248,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
+let u=d.top_usernames||[];
+new Chart($("#c1"),{type:"bar",data:{labels:u.map(x=>x.username.length>10?x.username.slice(0,10)+"..":x.username),datasets:[{data:u.map(x=>x.count),backgroundColor:"rgba(255,45,149,0.15)",borderColor:C.p,borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(255,45,149,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
+let p=d.top_passwords||[];
+new Chart($("#c2"),{type:"bar",data:{labels:p.map(x=>x.password.length>10?x.password.slice(0,10)+"..":x.password),datasets:[{data:p.map(x=>x.count),backgroundColor:"rgba(124,58,237,0.15)",borderColor:C.u,borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(124,58,237,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
+}
+function tbl(tid,items,lk,ck,clr){let t=document.getElementById(tid);if(!t)return;let mx=items.length>0?Math.max(...items.map(i=>i[ck])):1;t.innerHTML=items.map((x,i)=>{let p=(x[ck]/mx)*100;return '<tr><td class="ti">'+String(i+1).padStart(2,"0")+'</td><td class="tv">'+x[lk]+'</td><td class="tn">'+x[ck]+'<span class="tb" style="width:'+Math.min(p,60)+'px;background:'+clr+'"></span></td></tr>'}).join("")}
+let loaded=false;
+async function refresh(){try{let r=await fetch("/api/stats"),d=await r.json();if(d.error)return;if(!loaded){stats(d.stats);charts(d);loaded=true}else{let t=[d.stats.sessions,d.stats.auth_failed,d.stats.auth_success,d.stats.commands,d.stats.downloads,d.stats.unique_ips,d.stats.unique_usernames,d.stats.auth_rate];$$(".sn").forEach((e,i)=>{if(i<t.length){let v=t[i]||0;if(parseInt(e.textContent)!==v)anim(e,v,400)}})}tbl("t0",d.top_ips||[],"ip","count","#7c3aed");tbl("t1",d.top_usernames||[],"username","count","#ff2d95");tbl("t2",d.top_passwords||[],"password","count","#38bdf8");tbl("t3",d.top_commands||[],"command","count","#4ade80")}catch(e){console.error(e)}}
+refresh();setInterval(refresh,5000);let rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(refresh,500)});
+</script>
 </body>
 </html>
