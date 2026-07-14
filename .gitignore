@@ -1,0 +1,61 @@
+# ============================
+# Logs & Attack Data
+# ============================
+logs/
+docker/**/log/
+docker/**/log/**
+!docker/**/log/.gitkeep
+
+# ============================
+# Python
+# ============================
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+*.egg
+.venv/
+venv/
+env/
+.pytest_cache/
+
+# ============================
+# IDE & Editors
+# ============================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.orig
+*.bak
+
+# ============================
+# Secrets & Environment
+# ============================
+.env
+*.env.local
+credentials.json
+secrets/
+userdb.txt
+
+# ============================
+# Operating System
+# ============================
+Thumbs.db
+.DS_Store
+Desktop.ini
+
+# ============================
+# Docker
+# ============================
+.docker/
+docker-compose.override.yml
+
+# ============================
+# Generated Reports
+# ============================
+report/*.pdf
+report/*.html
+assets/generated/

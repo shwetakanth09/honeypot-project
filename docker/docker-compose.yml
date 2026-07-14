@@ -1,0 +1,31 @@
+services:
+  cowrie:
+    image: cowrie/cowrie:latest
+    container_name: cowrie-honeypot
+    restart: unless-stopped
+    ports:
+      - "2222:2222"
+      - "2223:2223"
+    volumes:
+      - ./cowrie/etc:/cowrie/cowrie-git/etc:ro
+      - ./cowrie/var/log/cowrie:/cowrie/cowrie-git/var/log/cowrie
+    environment:
+      - COWRIE_SSH_PORT=2222
+      - COWRIE_TELNET_PORT=2223
+    cap_drop:
+      - ALL
+    read_only: true
+    tmpfs:
+      - /tmp
+      - /run
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - honeynet
+
+networks:
+  honeynet:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/24

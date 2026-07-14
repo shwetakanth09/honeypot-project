@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cowrie Honeypot Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: #0f0f23;
+            color: #e0e0e0;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px;
+            border-bottom: 1px solid #2a2a4a;
+            margin-bottom: 30px;
+        }
+        .header h1 { color: #00ff88; font-size: 2em; }
+        .header p { color: #888; margin-top: 5px; }
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+        .stat-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+        .stat-card .value {
+            font-size: 2em;
+            font-weight: bold;
+            color: #00ff88;
+        }
+        .stat-card .label {
+            color: #888;
+            font-size: 0.85em;
+            margin-top: 5px;
+        }
+        .stat-card.danger .value { color: #ff4444; }
+        .stat-card.warning .value { color: #ffaa00; }
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .chart-card {
+            background: #1a1a3e;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 20px;
+        }
+        .chart-card h3 { margin-bottom: 15px; color: #00ff88; }
+        .chart-card canvas { max-height: 300px; }
+        .table-section {
+            background: #1a1a3e;
+            border: 1px solid #2a2a4a;
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .table-section h3 { margin-bottom: 15px; color: #00ff88; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid #2a2a4a; }
+        th { color: #888; font-size: 0.85em; text-transform: uppercase; }
+        tr:hover { background: #252550; }
+        .badge {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            background: #2a2a4a;
+        }
+        .badge.success { background: #004d26; color: #00ff88; }
+        .badge.danger { background: #4d0000; color: #ff4444; }
+        .refresh-note {
+            text-align: center;
+            color: #555;
+            font-size: 0.8em;
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Cowrie Honeypot Dashboard</h1>
+        <p>Real-time attack telemetry & analysis</p>
+    </div>
+
+    {% if data.error %}
+        <div class="stat-card" style="grid-column: 1/-1;">
+            <p style="color: #ff4444;">{{ data.error }}</p>
+        </div>
+    {% else %}
+    {% set s = data.stats %}
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="value">{{ s.sessions }}</div>
+            <div class="label">Total Sessions</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="value">{{ s.auth_failed }}</div>
+            <div class="label">Failed Logins</div>
+        </div>
+        <div class="stat-card warning">
+            <div class="value">{{ s.auth_success }}</div>
+            <div class="label">Successful Logins</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ s.commands }}</div>
+            <div class="label">Commands Executed</div>
+        </div>
+        <div class="stat-card danger">
+            <div class="value">{{ s.downloads }}</div>
+            <div class="label">File Downloads</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ s.unique_ips }}</div>
+            <div class="label">Unique Attackers</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ s.unique_usernames }}</div>
+            <div class="label">Usernames Tried</div>
+        </div>
+        <div class="stat-card">
+            <div class="value">{{ s.auth_rate }}%</div>
+            <div class="label">Auth Success Rate</div>
+        </div>
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <h3>Attack Timeline</h3>
+            <canvas id="timelineChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Top Usernames</h3>
+            <canvas id="usernamesChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Top Passwords</h3>
+            <canvas id="passwordsChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h3>Top Commands</h3>
+            <canvas id="commandsChart"></canvas>
+        </div>
+    </div>
+
+    <div class="table-section">
+        <h3>Top Attacker IPs</h3>
+        <table>
+            <tr><th>IP Address</th><th>Connections</th></tr>
+            {% for ip in data.top_ips %}
+            <tr><td><code>{{ ip.ip }}</code></td><td>{{ ip.count }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h3>Most Attempted Usernames</h3>
+        <table>
+            <tr><th>Username</th><th>Attempts</th></tr>
+            {% for u in data.top_usernames %}
+            <tr><td><code>{{ u.username }}</code></td><td>{{ u.count }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="table-section">
+        <h3>Most Attempted Passwords</h3>
+        <table>
+            <tr><th>Password</th><th>Attempts</th></tr>
+            {% for p in data.top_passwords %}
+            <tr><td><code>{{ p.password }}</code></td><td>{{ p.count }}</td></tr>
+            {% endfor %}
+        </table>
+    </div>
+    {% endif %}
+
+    <div class="refresh-note">Refresh page to update data from latest logs</div>
+
+    <script>
+    const defaultColors = [
+        '#00ff88', '#ff4444', '#ffaa00', '#4488ff', '#ff44ff',
+        '#44ffaa', '#ff8844', '#44ffff', '#8844ff', '#aaff44'
+    ];
+
+    function makeChart(id, type, labels, values, label) {
+        const ctx = document.getElementById(id);
+        if (!ctx) return;
+        new Chart(ctx, {
+            type: type,
+            data: {
+                labels: labels,
+                datasets: [{
+                    label: label,
+                    data: values,
+                    backgroundColor: defaultColors.slice(0, labels.length),
+                    borderColor: '#00ff88',
+                    borderWidth: type === 'line' ? 2 : 0,
+                    fill: type === 'line'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#888' } },
+                    x: { grid: { display: false }, ticks: { color: '#888' } }
+                }
+            }
+        });
+    }
+
+    const data = {{ data | tojson | safe }};
+
+    if (data.stats) {
+        const tl = data.timeline || [];
+        makeChart('timelineChart', 'line',
+            tl.map(p => p.hour.split(' ')[1]),
+            tl.map(p => p.count),
+            'Events'
+        );
+
+        const users = data.top_usernames || [];
+        makeChart('usernamesChart', 'bar',
+            users.map(u => u.username),
+            users.map(u => u.count),
+            'Attempts'
+        );
+
+        const pwds = data.top_passwords || [];
+        makeChart('passwordsChart', 'bar',
+            pwds.map(p => p.password.length > 10 ? p.password.slice(0,10)+'...' : p.password),
+            pwds.map(p => p.count),
+            'Attempts'
+        );
+
+        const cmds = data.top_commands || [];
+        makeChart('commandsChart', 'bar',
+            cmds.map(c => c.command.length > 15 ? c.command.slice(0,15)+'...' : c.command),
+            cmds.map(c => c.count),
+            'Executions'
+        );
+    }
+    </script>
+</body>
+</html>
