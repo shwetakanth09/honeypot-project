@@ -3,256 +3,604 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cowrie Honeypot Dashboard</title>
+    <title>Kuromi — Attack Telemetry</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=JetBrains+Mono:wght@300;400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
     <style>
+        :root {
+            --bg-primary: #0a0a12;
+            --bg-secondary: #12121e;
+            --bg-card: #1a1a2e;
+            --neon-pink: #ff2d95;
+            --neon-purple: #7c3aed;
+            --neon-cyan: #00d4ff;
+            --neon-green: #00ff88;
+            --text-primary: #e0e0ff;
+            --text-secondary: #8888aa;
+            --glow-pink: 0 0 20px rgba(255, 45, 149, 0.3);
+            --glow-purple: 0 0 20px rgba(124, 58, 237, 0.3);
+            --glow-cyan: 0 0 20px rgba(0, 212, 255, 0.3);
+            --border-glow: 1px solid rgba(124, 58, 237, 0.2);
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            background: #0f0f23;
-            color: #e0e0e0;
-            padding: 20px;
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            overflow-x: hidden;
         }
+
+        /* Animated background grid */
+        .bg-grid {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image:
+                linear-gradient(rgba(124, 58, 237, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(124, 58, 237, 0.03) 1px, transparent 1px);
+            background-size: 60px 60px;
+            z-index: 0;
+            pointer-events: none;
+        }
+
+        /* Floating particles */
+        .particles {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            z-index: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 3px; height: 3px;
+            background: var(--neon-pink);
+            border-radius: 50%;
+            animation: float linear infinite;
+            opacity: 0;
+        }
+        .particle:nth-child(1) { left: 10%; animation-duration: 12s; animation-delay: 0s; }
+        .particle:nth-child(2) { left: 25%; animation-duration: 15s; animation-delay: 2s; background: var(--neon-cyan); }
+        .particle:nth-child(3) { left: 40%; animation-duration: 10s; animation-delay: 4s; background: var(--neon-purple); }
+        .particle:nth-child(4) { left: 55%; animation-duration: 18s; animation-delay: 1s; }
+        .particle:nth-child(5) { left: 70%; animation-duration: 14s; animation-delay: 3s; background: var(--neon-cyan); }
+        .particle:nth-child(6) { left: 85%; animation-duration: 11s; animation-delay: 5s; background: var(--neon-purple); }
+        .particle:nth-child(7) { left: 50%; animation-duration: 16s; animation-delay: 0s; }
+        .particle:nth-child(8) { left: 15%; animation-duration: 13s; animation-delay: 3s; background: var(--neon-cyan); }
+        .particle:nth-child(9) { left: 65%; animation-duration: 9s; animation-delay: 2s; background: var(--neon-purple); }
+        .particle:nth-child(10) { left: 90%; animation-duration: 17s; animation-delay: 4s; }
+        .particle:nth-child(11) { left: 5%; animation-duration: 14s; animation-delay: 1s; background: var(--neon-cyan); }
+        .particle:nth-child(12) { left: 35%; animation-duration: 12s; animation-delay: 5s; }
+        .particle:nth-child(13) { left: 75%; animation-duration: 15s; animation-delay: 0s; background: var(--neon-purple); }
+        .particle:nth-child(14) { left: 45%; animation-duration: 11s; animation-delay: 3s; }
+        .particle:nth-child(15) { left: 95%; animation-duration: 16s; animation-delay: 2s; background: var(--neon-cyan); }
+
+        @keyframes float {
+            0% { transform: translateY(100vh) scale(0); opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+        }
+
+        /* Header */
         .header {
-            text-align: center;
-            padding: 20px;
-            border-bottom: 1px solid #2a2a4a;
-            margin-bottom: 30px;
+            position: relative;
+            z-index: 1;
+            padding: 30px 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: var(--border-glow);
+            background: linear-gradient(180deg, rgba(26, 26, 46, 0.8) 0%, transparent 100%);
+            backdrop-filter: blur(10px);
         }
-        .header h1 { color: #00ff88; font-size: 2em; }
-        .header p { color: #888; margin-top: 5px; }
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        .logo {
+            width: 50px; height: 50px;
+            border: 2px solid var(--neon-pink);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 18px;
+            color: var(--neon-pink);
+            box-shadow: var(--glow-pink);
+            animation: logoPulse 3s ease-in-out infinite;
+        }
+        @keyframes logoPulse {
+            0%, 100% { box-shadow: var(--glow-pink); }
+            50% { box-shadow: 0 0 40px rgba(255, 45, 149, 0.5); }
+        }
+        .title h1 {
+            font-family: 'Orbitron', monospace;
+            font-weight: 900;
+            font-size: 28px;
+            background: linear-gradient(135deg, var(--neon-pink), var(--neon-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: 3px;
+        }
+        .title .subtitle {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            letter-spacing: 4px;
+            text-transform: uppercase;
+        }
+        .status-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--neon-green);
+            padding: 8px 16px;
+            border: 1px solid rgba(0, 255, 136, 0.2);
+            border-radius: 20px;
+            background: rgba(0, 255, 136, 0.05);
+        }
+        .status-dot {
+            width: 8px; height: 8px;
+            background: var(--neon-green);
+            border-radius: 50%;
+            animation: blink 1.5s ease-in-out infinite;
+        }
+        @keyframes blink {
+            0%, 100% { opacity: 1; box-shadow: 0 0 8px var(--neon-green); }
+            50% { opacity: 0.3; box-shadow: none; }
+        }
+
+        /* Main content */
+        .main {
+            position: relative;
+            z-index: 1;
+            padding: 30px 40px 60px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Scan line effect */
+        .scanlines {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 0, 0, 0.03) 2px,
+                rgba(0, 0, 0, 0.03) 4px
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+
+        /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 15px;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
             margin-bottom: 30px;
         }
         .stat-card {
-            background: #1a1a3e;
-            border: 1px solid #2a2a4a;
-            border-radius: 10px;
-            padding: 20px;
-            text-align: center;
+            background: var(--bg-card);
+            border: var(--border-glow);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-pink), var(--neon-purple), var(--neon-cyan));
+            opacity: 0.5;
+        }
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--glow-purple);
+            border-color: var(--neon-purple);
         }
         .stat-card .value {
-            font-size: 2em;
-            font-weight: bold;
-            color: #00ff88;
+            font-family: 'Orbitron', monospace;
+            font-weight: 700;
+            font-size: 32px;
+            margin-bottom: 4px;
+            background: linear-gradient(135deg, var(--text-primary), var(--neon-cyan));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
+        .stat-card .value.danger { background: linear-gradient(135deg, #ff4444, var(--neon-pink)); -webkit-background-clip: text; }
+        .stat-card .value.success { background: linear-gradient(135deg, var(--neon-green), #00cc6a); -webkit-background-clip: text; }
+        .stat-card .value.warning { background: linear-gradient(135deg, #ffaa00, #ff6600); -webkit-background-clip: text; }
+        .stat-card .value.purple { background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)); -webkit-background-clip: text; }
         .stat-card .label {
-            color: #888;
-            font-size: 0.85em;
-            margin-top: 5px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
         }
-        .stat-card.danger .value { color: #ff4444; }
-        .stat-card.warning .value { color: #ffaa00; }
+
+        /* Charts */
         .charts-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(450px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
         .chart-card {
-            background: #1a1a3e;
-            border: 1px solid #2a2a4a;
-            border-radius: 10px;
-            padding: 20px;
+            background: var(--bg-card);
+            border: var(--border-glow);
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
         }
-        .chart-card h3 { margin-bottom: 15px; color: #00ff88; }
-        .chart-card canvas { max-height: 300px; }
-        .table-section {
-            background: #1a1a3e;
-            border: 1px solid #2a2a4a;
-            border-radius: 10px;
-            padding: 20px;
-            margin-bottom: 20px;
+        .chart-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-cyan));
+            opacity: 0.3;
         }
-        .table-section h3 { margin-bottom: 15px; color: #00ff88; }
+        .chart-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 13px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
+        .chart-card canvas {
+            max-height: 280px;
+        }
+
+        /* Tables */
+        .tables-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .table-card {
+            background: var(--bg-card);
+            border: var(--border-glow);
+            border-radius: 16px;
+            padding: 20px;
+            position: relative;
+        }
+        .table-card::before {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 0; right: 0;
+            height: 2px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple));
+            opacity: 0.3;
+        }
+        .table-card h3 {
+            font-family: 'Orbitron', monospace;
+            font-size: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 16px;
+        }
         table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 10px 15px; text-align: left; border-bottom: 1px solid #2a2a4a; }
-        th { color: #888; font-size: 0.85em; text-transform: uppercase; }
-        tr:hover { background: #252550; }
-        .badge {
-            display: inline-block;
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: 0.8em;
-            background: #2a2a4a;
+        th {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            padding: 10px 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.15);
         }
-        .badge.success { background: #004d26; color: #00ff88; }
-        .badge.danger { background: #4d0000; color: #ff4444; }
-        .refresh-note {
-            text-align: center;
-            color: #555;
-            font-size: 0.8em;
-            margin-top: 30px;
+        td {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(124, 58, 237, 0.08);
+        }
+        tr:hover td { background: rgba(124, 58, 237, 0.05); }
+        .rank-num {
+            color: var(--neon-purple);
+            font-weight: 700;
+        }
+        .bar-cell {
+            display: flex; align-items: center; gap: 10px;
+        }
+        .bar {
+            height: 4px;
+            border-radius: 2px;
+            background: linear-gradient(90deg, var(--neon-purple), var(--neon-pink));
+            transition: width 0.8s ease;
+            min-width: 4px;
+        }
+        .bar.cyan { background: linear-gradient(90deg, var(--neon-cyan), var(--neon-purple)); }
+        .bar.green { background: linear-gradient(90deg, var(--neon-green), #00cc6a); }
+        .bar.pink { background: linear-gradient(90deg, var(--neon-pink), #ff0066); }
+        .count-val {
+            font-family: 'Orbitron', monospace;
+            font-size: 14px;
+            min-width: 30px;
+            text-align: right;
+        }
+        td code {
+            color: var(--neon-cyan);
+            background: rgba(0, 212, 255, 0.1);
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+
+        /* Glitch text */
+        .glitch {
+            position: relative;
+        }
+        .glitch::before, .glitch::after {
+            content: 'Kuromi';
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0;
+        }
+        .glitch::before {
+            color: var(--neon-cyan);
+            animation: glitch1 3s infinite;
+        }
+        .glitch::after {
+            color: var(--neon-pink);
+            animation: glitch2 3s infinite;
+        }
+        @keyframes glitch1 {
+            0%, 90%, 100% { transform: none; opacity: 0; }
+            92% { transform: translate(3px, -2px); opacity: 0.7; }
+            94% { transform: translate(-2px, 1px); opacity: 0.5; }
+            96% { transform: translate(1px, 2px); opacity: 0.3; }
+        }
+        @keyframes glitch2 {
+            0%, 90%, 100% { transform: none; opacity: 0; }
+            93% { transform: translate(-3px, 2px); opacity: 0.5; }
+            95% { transform: translate(2px, -1px); opacity: 0.7; }
+            97% { transform: translate(-1px, -2px); opacity: 0.3; }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header { padding: 20px; flex-direction: column; gap: 15px; }
+            .main { padding: 20px; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .charts-grid { grid-template-columns: 1fr; }
+            .tables-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
 <body>
+    <div class="bg-grid"></div>
+    <div class="particles">
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div><div class="particle"></div>
+        <div class="particle"></div>
+    </div>
+    <div class="scanlines"></div>
+
     <div class="header">
-        <h1>Cowrie Honeypot Dashboard</h1>
-        <p>Real-time attack telemetry & analysis</p>
-    </div>
-
-    {% if data.error %}
-        <div class="stat-card" style="grid-column: 1/-1;">
-            <p style="color: #ff4444;">{{ data.error }}</p>
+        <div class="brand">
+            <div class="logo">K</div>
+            <div class="title">
+                <h1 class="glitch">Kuromi</h1>
+                <div class="subtitle">Attack Telemetry &bull; v1.0.0</div>
+            </div>
         </div>
-    {% else %}
-    {% set s = data.stats %}
-    <div class="stats-grid">
-        <div class="stat-card">
-            <div class="value">{{ s.sessions }}</div>
-            <div class="label">Total Sessions</div>
-        </div>
-        <div class="stat-card danger">
-            <div class="value">{{ s.auth_failed }}</div>
-            <div class="label">Failed Logins</div>
-        </div>
-        <div class="stat-card warning">
-            <div class="value">{{ s.auth_success }}</div>
-            <div class="label">Successful Logins</div>
-        </div>
-        <div class="stat-card">
-            <div class="value">{{ s.commands }}</div>
-            <div class="label">Commands Executed</div>
-        </div>
-        <div class="stat-card danger">
-            <div class="value">{{ s.downloads }}</div>
-            <div class="label">File Downloads</div>
-        </div>
-        <div class="stat-card">
-            <div class="value">{{ s.unique_ips }}</div>
-            <div class="label">Unique Attackers</div>
-        </div>
-        <div class="stat-card">
-            <div class="value">{{ s.unique_usernames }}</div>
-            <div class="label">Usernames Tried</div>
-        </div>
-        <div class="stat-card">
-            <div class="value">{{ s.auth_rate }}%</div>
-            <div class="label">Auth Success Rate</div>
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            LIVE CAPTURE — Port 2222
         </div>
     </div>
 
-    <div class="charts-grid">
-        <div class="chart-card">
-            <h3>Attack Timeline</h3>
-            <canvas id="timelineChart"></canvas>
+    <div class="main">
+        <div class="stats-grid" id="statsGrid">
+            <div class="stat-card"><div class="value" id="statSessions">--</div><div class="label">Sessions</div></div>
+            <div class="stat-card"><div class="value danger" id="statFailed">--</div><div class="label">Failed Logins</div></div>
+            <div class="stat-card"><div class="value warning" id="statSuccess">--</div><div class="label">Successful</div></div>
+            <div class="stat-card"><div class="value" id="statCommands">--</div><div class="label">Commands</div></div>
+            <div class="stat-card"><div class="value danger" id="statDownloads">--</div><div class="label">Downloads</div></div>
+            <div class="stat-card"><div class="value purple" id="statIPs">--</div><div class="label">Attackers</div></div>
+            <div class="stat-card"><div class="value" id="statUsers">--</div><div class="label">Usernames</div></div>
+            <div class="stat-card"><div class="value success" id="statRate">--</div><div class="label">Auth Rate</div></div>
         </div>
-        <div class="chart-card">
-            <h3>Top Usernames</h3>
-            <canvas id="usernamesChart"></canvas>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <h3>Attack Timeline</h3>
+                <canvas id="timelineChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Top Usernames</h3>
+                <canvas id="usernamesChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Top Passwords</h3>
+                <canvas id="passwordsChart"></canvas>
+            </div>
+            <div class="chart-card">
+                <h3>Top Commands</h3>
+                <canvas id="commandsChart"></canvas>
+            </div>
         </div>
-        <div class="chart-card">
-            <h3>Top Passwords</h3>
-            <canvas id="passwordsChart"></canvas>
-        </div>
-        <div class="chart-card">
-            <h3>Top Commands</h3>
-            <canvas id="commandsChart"></canvas>
+
+        <div class="tables-grid">
+            <div class="table-card">
+                <h3>Attacker IPs</h3>
+                <table><thead><tr><th>#</th><th>IP Address</th><th style="text-align:right">Connections</th></tr></thead>
+                <tbody id="ipTable"></tbody></table>
+            </div>
+            <div class="table-card">
+                <h3>Usernames</h3>
+                <table><thead><tr><th>#</th><th>Username</th><th style="text-align:right">Attempts</th></tr></thead>
+                <tbody id="userTable"></tbody></table>
+            </div>
+            <div class="table-card">
+                <h3>Passwords</h3>
+                <table><thead><tr><th>#</th><th>Password</th><th style="text-align:right">Attempts</th></tr></thead>
+                <tbody id="passwordTable"></tbody></table>
+            </div>
+            <div class="table-card">
+                <h3>Commands</h3>
+                <table><thead><tr><th>#</th><th>Command</th><th style="text-align:right">Count</th></tr></thead>
+                <tbody id="commandTable"></tbody></table>
+            </div>
         </div>
     </div>
-
-    <div class="table-section">
-        <h3>Top Attacker IPs</h3>
-        <table>
-            <tr><th>IP Address</th><th>Connections</th></tr>
-            {% for ip in data.top_ips %}
-            <tr><td><code>{{ ip.ip }}</code></td><td>{{ ip.count }}</td></tr>
-            {% endfor %}
-        </table>
-    </div>
-
-    <div class="table-section">
-        <h3>Most Attempted Usernames</h3>
-        <table>
-            <tr><th>Username</th><th>Attempts</th></tr>
-            {% for u in data.top_usernames %}
-            <tr><td><code>{{ u.username }}</code></td><td>{{ u.count }}</td></tr>
-            {% endfor %}
-        </table>
-    </div>
-
-    <div class="table-section">
-        <h3>Most Attempted Passwords</h3>
-        <table>
-            <tr><th>Password</th><th>Attempts</th></tr>
-            {% for p in data.top_passwords %}
-            <tr><td><code>{{ p.password }}</code></td><td>{{ p.count }}</td></tr>
-            {% endfor %}
-        </table>
-    </div>
-    {% endif %}
-
-    <div class="refresh-note">Refresh page to update data from latest logs</div>
 
     <script>
-    const defaultColors = [
-        '#00ff88', '#ff4444', '#ffaa00', '#4488ff', '#ff44ff',
-        '#44ffaa', '#ff8844', '#44ffff', '#8844ff', '#aaff44'
-    ];
+    const COLORS = {
+        pink: '#ff2d95',
+        purple: '#7c3aed',
+        cyan: '#00d4ff',
+        green: '#00ff88',
+        darkPink: '#cc0066',
+        darkPurple: '#5b21b6'
+    };
 
-    function makeChart(id, type, labels, values, label) {
+    const chartDefaults = {
+        animation: false,
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: { legend: { display: false } },
+        scales: {
+            y: { beginAtZero: true, grid: { color: 'rgba(124,58,237,0.08)' }, ticks: { color: '#8888aa', font: { family: 'JetBrains Mono', size: 10 } } },
+            x: { grid: { display: false }, ticks: { color: '#8888aa', font: { family: 'JetBrains Mono', size: 10 } } }
+        }
+    };
+
+    function makeChart(id, type, labels, values, label, color) {
         const ctx = document.getElementById(id);
-        if (!ctx) return;
-        new Chart(ctx, {
+        if (!ctx) return null;
+        const grad = ctx.getContext('2d').createLinearGradient(0, 0, 0, 280);
+        grad.addColorStop(0, color + '40');
+        grad.addColorStop(1, color + '00');
+        return new Chart(ctx, {
             type: type,
             data: {
                 labels: labels,
                 datasets: [{
                     label: label,
                     data: values,
-                    backgroundColor: defaultColors.slice(0, labels.length),
-                    borderColor: '#00ff88',
-                    borderWidth: type === 'line' ? 2 : 0,
-                    fill: type === 'line'
+                    backgroundColor: type === 'line' ? grad : color + '30',
+                    borderColor: color,
+                    borderWidth: type === 'line' ? 2 : 1,
+                    pointBorderColor: color,
+                    pointBackgroundColor: color + '80',
+                    pointRadius: type === 'line' ? 3 : 0,
+                    fill: type === 'line',
+                    borderRadius: 4,
                 }]
             },
-            options: {
-                responsive: true,
-                maintainAspectRatio: true,
-                plugins: { legend: { display: false } },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: '#2a2a4a' }, ticks: { color: '#888' } },
-                    x: { grid: { display: false }, ticks: { color: '#888' } }
-                }
-            }
+            options: chartDefaults
         });
     }
 
-    const data = {{ data | tojson | safe }};
+    function renderTable(tbodyId, items, labelKey, countKey, barColor) {
+        const tbody = document.getElementById(tbodyId);
+        if (!tbody) return;
+        const maxCount = items.length > 0 ? Math.max(...items.map(i => i[countKey])) : 1;
+        tbody.innerHTML = items.map((item, i) => {
+            const pct = (item[countKey] / maxCount) * 100;
+            return `<tr>
+                <td class="rank-num">${String(i + 1).padStart(2, '0')}</td>
+                <td><code>${item[labelKey]}</code></td>
+                <td style="text-align:right">
+                    <div class="bar-cell" style="justify-content:flex-end">
+                        <span class="count-val">${item[countKey]}</span>
+                        <div class="bar ${barColor}" style="width:${pct}px;max-width:80px"></div>
+                    </div>
+                </td>
+            </tr>`;
+        }).join('');
+    }
 
-    if (data.stats) {
+    function updateDashboard(data) {
+        if (data.error) {
+            document.getElementById('statsGrid').innerHTML =
+                `<div class="stat-card" style="grid-column:1/-1"><p style="color:#ff2d95">${data.error}</p></div>`;
+            return;
+        }
+        const s = data.stats;
+
+        // Animate numbers
+        function animate(el, target) {
+            if (!el) return;
+            el.textContent = target;
+        }
+        animate(document.getElementById('statSessions'), s.sessions);
+        animate(document.getElementById('statFailed'), s.auth_failed);
+        animate(document.getElementById('statSuccess'), s.auth_success);
+        animate(document.getElementById('statCommands'), s.commands);
+        animate(document.getElementById('statDownloads'), s.downloads);
+        animate(document.getElementById('statIPs'), s.unique_ips);
+        animate(document.getElementById('statUsers'), s.unique_usernames);
+        animate(document.getElementById('statRate'), s.auth_rate + '%');
+
+        // Charts
         const tl = data.timeline || [];
         makeChart('timelineChart', 'line',
-            tl.map(p => p.hour.split(' ')[1]),
-            tl.map(p => p.count),
-            'Events'
+            tl.map(p => p.hour), tl.map(p => p.count), 'Events', COLORS.cyan
         );
-
         const users = data.top_usernames || [];
         makeChart('usernamesChart', 'bar',
-            users.map(u => u.username),
-            users.map(u => u.count),
-            'Attempts'
+            users.map(u => u.username.length > 12 ? u.username.slice(0,12)+'..' : u.username),
+            users.map(u => u.count), 'Attempts', COLORS.pink
         );
-
         const pwds = data.top_passwords || [];
         makeChart('passwordsChart', 'bar',
-            pwds.map(p => p.password.length > 10 ? p.password.slice(0,10)+'...' : p.password),
-            pwds.map(p => p.count),
-            'Attempts'
+            pwds.map(p => p.password.length > 12 ? p.password.slice(0,12)+'..' : p.password),
+            pwds.map(p => p.count), 'Attempts', COLORS.purple
         );
-
         const cmds = data.top_commands || [];
         makeChart('commandsChart', 'bar',
-            cmds.map(c => c.command.length > 15 ? c.command.slice(0,15)+'...' : c.command),
-            cmds.map(c => c.count),
-            'Executions'
+            cmds.map(c => c.command.length > 15 ? c.command.slice(0,15)+'..' : c.command),
+            cmds.map(c => c.count), 'Commands', COLORS.green
         );
+
+        // Tables
+        renderTable('ipTable', data.top_ips || [], 'ip', 'count', 'purple');
+        renderTable('userTable', data.top_usernames || [], 'username', 'count', 'pink');
+        renderTable('passwordTable', data.top_passwords || [], 'password', 'count', 'cyan');
+        renderTable('commandTable', data.top_commands || [], 'command', 'count', 'green');
     }
+
+    async function fetchData() {
+        try {
+            const resp = await fetch('/api/stats');
+            const data = await resp.json();
+            updateDashboard(data);
+        } catch (e) {
+            console.error('Dashboard fetch error:', e);
+        }
+    }
+
+    // Initial load, then poll every 5 seconds
+    fetchData();
+    setInterval(fetchData, 5000);
     </script>
 </body>
 </html>

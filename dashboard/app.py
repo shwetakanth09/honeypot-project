@@ -1,4 +1,4 @@
-"""Flask dashboard for visualizing Cowrie honeypot data."""
+"""Kuromi Dashboard — Cyberpunk attack telemetry visualization."""
 
 import json
 from collections import Counter
@@ -32,7 +32,7 @@ def load_events():
 def analyze():
     events = load_events()
     if not events:
-        return {"error": "No log data found"}
+        return {"error": "No attack data captured yet"}
 
     sessions = {}
     for evt in events:
@@ -95,6 +95,8 @@ def analyze():
                 pass
 
     command_counter = Counter(commands)
+    total_auth = auth_success + auth_failed
+    auth_rate = round((auth_success / max(total_auth, 1)) * 100, 1)
 
     return {
         "stats": {
@@ -108,38 +110,35 @@ def analyze():
             "downloads": downloads,
             "unique_ips": len(ip_counter),
             "unique_usernames": len(username_counter),
-            "unique_passwords": len(password_counter),
-            "auth_rate": round(
-                (auth_success / max(auth_success + auth_failed, 1)) * 100, 1
-            ),
+            "unique_passwords": len(username_counter),
+            "auth_rate": auth_rate,
         },
         "top_ips": [
-            {"ip": ip, "count": c} for ip, c in ip_counter.most_common(10)
+            {"ip": ip, "count": c, "bar": c}
+            for ip, c in ip_counter.most_common(10)
         ],
         "top_usernames": [
-            {"username": u, "count": c}
+            {"username": u, "count": c, "bar": c}
             for u, c in username_counter.most_common(10)
         ],
         "top_passwords": [
-            {"password": p, "count": c}
+            {"password": p, "count": c, "bar": c}
             for p, c in password_counter.most_common(10)
         ],
         "top_commands": [
-            {"command": cmd, "count": c}
+            {"command": cmd, "count": c, "bar": c}
             for cmd, c in command_counter.most_common(10)
         ],
         "timeline": [
-            {"hour": h, "count": c}
+            {"hour": h.split(" ")[1], "count": c}
             for h, c in sorted(hourly_counter.items())
         ],
-        "sessions_detail": [],
     }
 
 
 @app.route("/")
 def index():
-    data = analyze()
-    return render_template("index.html", data=data)
+    return render_template("index.html")
 
 
 @app.route("/api/stats")
@@ -148,4 +147,4 @@ def api_stats():
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000, debug=True)
+    app.run(host="0.0.0.0", port=5000, debug=False)

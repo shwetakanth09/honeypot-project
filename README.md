@@ -1,13 +1,11 @@
-# Cowrie Honeypot — Attack Capture & Analysis Platform
+# Kuromi — Honeypot Attack Capture & Analysis
 
-[![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-blue)](https://python.org)
-[![Docker](https://img.shields.io/badge/docker-required-blue)](https://docker.com)
-[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![MIT License](https://img.shields.io/badge/license-MIT-neonpink.svg)](LICENSE)
+[![Python 3.12+](https://img.shields.io/badge/python-3.12%2B-ff2d95)](https://python.org)
+[![Docker](https://img.shields.io/badge/docker-required-7c3aed)](https://docker.com)
+[![Cyber](https://img.shields.io/badge/style-cyberpunk-00d4ff)](https://github.com)
 
-A production-style SSH/Telnet honeypot using [Cowrie](https://github.com/cowrie/cowrie) in Docker, with Python-based log analysis and a visualization dashboard.
-
-> **Educational Purpose Only** — Designed for defensive cybersecurity research. Only deploy on systems you own or have explicit permission to monitor.
+> **Kuromi** — A dark, elegant SSH honeypot platform. Watch attackers in real-time. Learn their tools. Stay ahead.
 
 ---
 
@@ -15,10 +13,10 @@ A production-style SSH/Telnet honeypot using [Cowrie](https://github.com/cowrie/
 
 ```mermaid
 graph TB
-    A[Attacker] -->|SSH :2222| B[Cowrie Container]
+    A[Attacker] -->|SSH :2222| B[Kuromi Engine]
     B -->|JSON logs| C[(cowrie.json)]
-    C --> D[Python Log Analyzer]
-    C --> E[Flask Dashboard]
+    C --> D[Log Analyzer]
+    C --> E[Kuromi Dashboard]
     E --> F[Browser UI]
 
     subgraph Container Hardening
@@ -28,23 +26,24 @@ graph TB
         B --> J[no-new-privileges]
     end
 
-    style A fill:#e74c3c,color:#fff
-    style B fill:#3498db,color:#fff
-    style C fill:#f39c12,color:#fff
-    style D fill:#2ecc71,color:#fff
-    style E fill:#2ecc71,color:#fff
+    style A fill:#ff2d95,color:#fff
+    style B fill:#1a1a2e,color:#fff,stroke:#7c3aed,stroke-width:2px
+    style C fill:#16213e,color:#fff,stroke:#00d4ff
+    style D fill:#1a1a2e,color:#fff,stroke:#ff2d95
+    style E fill:#1a1a2e,color:#fff,stroke:#7c3aed
+    style F fill:#0f3460,color:#fff,stroke:#00d4ff
 ```
 
 ## Quick Start
 
 ```bash
-# Start the honeypot
+# Start Kuromi
 cd docker && docker compose up -d
 
-# Test the connection
+# Test the trap
 ssh root@localhost -p 2222
 
-# Analyze captured logs
+# Analyze logs
 python scripts/log_analyzer.py
 
 # Launch dashboard
@@ -54,27 +53,25 @@ python dashboard/app.py
 
 ## Features
 
-- **SSH/Telnet honeypot** — Full protocol emulation, realistic fake filesystem
-- **Attack telemetry** — Every login, command, and file download captured
+- **SSH/Telnet honeypot** — Full protocol emulation with realistic fake filesystem
+- **Attack telemetry** — Every login, command, and file download captured in JSON
 - **Security hardened** — Container with `read_only`, `cap_drop ALL`, `no-new-privileges`
 - **Network contained** — Outbound traffic disabled, isolated Docker subnet
 - **Log analyzer** — Python tool for attack statistics and session replay
-- **Flask dashboard** — Real-time charts for credentials, IPs, and commands
+- **Kuromi Dashboard** — Cyberpunk-themed real-time attack visualization
 - **Attack simulator** — Generate test data to validate the pipeline
 
 ## Project Structure
 
 ```
-basic-honeypot/
-├── docker/              # Container deployment & Cowrie configuration
-│   ├── docker-compose.yml
-│   └── cowrie/etc/      # Read-only Cowrie config
+kuromi/
+├── docker/              # Container deployment
 ├── scripts/             # Python analysis tools
-├── dashboard/           # Flask web dashboard
+├── dashboard/           # Kuromi web dashboard
 ├── config/              # Shared configuration
 ├── tests/               # Unit tests (pytest)
-├── docs/                # Documentation with Mermaid diagrams
-├── logs/                # Archived log storage
+├── docs/                # Documentation
+├── logs/                # Archived attack data
 ├── assets/              # Screenshots and diagrams
 ├── report/              # Analysis reports
 └── .github/workflows/   # CI/CD pipeline
@@ -84,24 +81,13 @@ basic-honeypot/
 
 | Layer | Protection |
 |-------|-----------|
-| **Capabilities** | `cap_drop: ALL` — no kernel capabilities granted |
-| **Filesystem** | `read_only: true` — container is immutable |
-| **Privileges** | `no-new-privileges:true` — can't escalate |
-| **Temp space** | `tmpfs` — all temp data in RAM, wiped on restart |
-| **Network** | Outbound traffic disabled, isolated subnet |
-| **Config** | Cowrie configuration mounted read-only (`:ro`) |
-
-## Tech Stack
-
-| Component | Technology |
-|-----------|------------|
-| Honeypot | Cowrie (Python/Twisted) |
-| Container | Docker + Docker Compose |
-| Log format | JSON Lines |
-| Analysis | Python 3.12+ |
-| Dashboard | Flask + Chart.js |
-| Testing | pytest |
+| **Capabilities** | `cap_drop: ALL` — no kernel capabilities |
+| **Filesystem** | `read_only: true` — immutable container |
+| **Privileges** | `no-new-privileges:true` — no escalation |
+| **Temp space** | `tmpfs` — RAM-only, wiped on restart |
+| **Network** | Outbound disabled, isolated subnet |
+| **Config** | Mounted read-only (`:ro`) |
 
 ## License
 
-MIT License — see [LICENSE](LICENSE)
+MIT — See [LICENSE](LICENSE)
