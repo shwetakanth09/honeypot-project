@@ -3,99 +3,390 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>Kuromi</title>
+<title>Kuromi — Attack Telemetry</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',sans-serif}
-:root{--bg:#0b0b12;--bg2:#111118;--card:#16161f;--bd:#1e1e2e;--bd2:#2a2a3e;--txt:#e2e2f0;--dim:#7878a0;--dim2:#484868;--pink:#ff2d95;--purple:#7c3aed;--cyan:#38bdf8;--green:#4ade80;--red:#f87171;--orange:#fb923c}
-body{background:var(--bg);color:var(--txt)}
-::-webkit-scrollbar{width:4px}
-::-webkit-scrollbar-track{background:transparent}
-::-webkit-scrollbar-thumb{background:var(--dim2);border-radius:2px}
-.nav{display:flex;justify-content:space-between;align-items:center;padding:0 32px;height:56px;border-bottom:1px solid var(--bd);background:var(--bg2)}
-.nav-l{display:flex;align-items:center;gap:12px}
-.nav-logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--pink),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:600;font-size:14px;color:#fff}
-.nav-t{font-size:15px;font-weight:600;color:var(--txt)}
-.nav-t span{color:var(--dim);font-weight:400}
-.nav-r{display:flex;align-items:center;gap:16px}
-.nav-b{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:6px;font-size:12px;font-family:'JetBrains Mono',monospace;background:rgba(74,222,128,0.08);color:var(--green);border:1px solid rgba(74,222,128,0.12)}
-.nav-dot{width:6px;height:6px;border-radius:50%;background:var(--green)}
-.nav-p{padding:4px 10px;border-radius:6px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(56,189,248,0.06);border:1px solid rgba(56,189,248,0.1)}
-.app{padding:24px 32px 0;max-width:1440px;margin:0 auto;height:calc(100vh - 56px);display:flex;flex-direction:column;gap:16px}
-.stats{display:grid;grid-template-columns:repeat(8,1fr);gap:8px}
-.stat{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:14px 12px;transition:all .12s}
-.stat:hover{border-color:var(--bd2);background:var(--bg2)}
-.sn{font-size:20px;font-weight:700;font-family:'JetBrains Mono',monospace;letter-spacing:-.5px;line-height:1.2;font-feature-settings:'tnum'1}
-.s1{color:var(--cyan)}.s2{color:var(--red)}.s3{color:var(--orange)}.s4{color:var(--pink)}.s5{color:var(--purple)}.s6{color:var(--green)}
-.sl{font-size:11px;color:var(--dim);margin-top:2px;letter-spacing:.3px}
-.cr{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:8px;flex:1;min-height:0}
-.cp{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;display:flex;flex-direction:column}
-.cp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
-.cp-h h3{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.3px}
-.cp-h .t{font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim2);background:var(--bg);padding:2px 8px;border-radius:4px}
-.cp-b{flex:1;position:relative;min-height:0}
-.cp-b canvas{width:100%!important;height:100%!important}
-.tr{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;height:0;flex:.55;min-height:0}
-.tp{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:12px;display:flex;flex-direction:column}
-.tp h3{font-size:11px;font-weight:600;color:var(--dim);margin-bottom:8px;letter-spacing:.3px}
-.ts{flex:1;overflow-y:auto;min-height:0}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#08080f;--surface:rgba(22,22,35,.75);--border:rgba(60,60,120,.2);
+  --text:#e2e2f0;--dim:#6868a0;--accent:#ff2d95;--cyan:#38bdf8;--purple:#7c3aed;--green:#4ade80;--red:#f87171;--orange:#fb923c
+}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+#three-canvas{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}
+
+/* UI overlay */
+.ui{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:16px 24px;gap:12px;pointer-events:none}
+.ui>*{pointer-events:auto}
+
+/* Nav */
+.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.nav-l{display:flex;align-items:center;gap:14px}
+.nav-mrk{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:#fff}
+.nav-t{font-size:15px;font-weight:600}
+.nav-t small{color:var(--dim);font-weight:400;font-size:13px}
+.nav-r{display:flex;align-items:center;gap:12px}
+.nav-st{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:8px;font-size:11px;font-family:'JetBrains Mono',monospace;background:rgba(74,222,128,.08);color:var(--green);border:1px solid rgba(74,222,128,.12)}
+.nav-p{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
+.nav-port{padding:4px 12px;border-radius:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.1)}
+
+/* Main layout */
+.main{flex:1;display:grid;grid-template-columns:1fr 340px;gap:12px;min-height:0}
+.col-l{display:flex;flex-direction:column;gap:12px;min-height:0}
+.col-r{display:flex;flex-direction:column;gap:12px;min-height:0}
+
+/* Stats row */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.st{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);transition:border-color .2s}
+.st:hover{border-color:rgba(60,60,120,.4)}
+.st-n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;line-height:1.2}
+.st-l{font-size:11px;color:var(--dim);margin-top:3px}
+.c-cy{color:var(--cyan)}.c-rd{color:var(--red)}.c-or{color:var(--orange)}.c-pk{color:var(--accent)}.c-pl{color:var(--purple)}.c-gr{color:var(--green)}
+
+/* Chart panel */
+.chart-p{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;flex:1;display:flex;flex-direction:column;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.chart-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
+.chart-h h3{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.4px;text-transform:uppercase}
+.chart-h .tag{font-size:9px;font-family:'JetBrains Mono',monospace;color:rgba(104,104,160,.5);padding:2px 8px;border-radius:4px;background:rgba(104,104,160,.06)}
+.chart-b{flex:1;position:relative;min-height:0}
+.chart-b canvas{width:100%!important;height:100%!important}
+
+/* Side panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;flex:1;display:flex;flex-direction:column;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);overflow:hidden}
+.panel:last-child{flex:0.7}
+.panel h3{font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.p-scroll{flex:1;overflow-y:auto;min-height:0}
+.p-scroll::-webkit-scrollbar{width:3px}
+.p-scroll::-webkit-scrollbar-thumb{background:rgba(104,104,160,.2);border-radius:2px}
 table{width:100%;border-collapse:collapse}
-th{font-size:10px;color:var(--dim2);font-weight:500;padding:4px 6px;text-align:left;border-bottom:1px solid var(--bd);font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:var(--card)}
-td{font-size:12px;padding:5px 6px;border-bottom:1px solid rgba(30,30,46,.4);font-family:'JetBrains Mono',monospace}
-tr:hover td{background:rgba(30,30,46,.3)}
-.ti{color:var(--dim2);font-size:10px;width:24px}
-.tv{color:var(--cyan)}
-.tn{text-align:right;font-weight:600}
-.tb{display:inline-block;height:3px;border-radius:2px;margin-left:6px;vertical-align:middle}
+th{font-size:9px;color:rgba(104,104,160,.4);font-weight:500;padding:4px 6px;text-align:left;font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:var(--surface);border-bottom:1px solid rgba(60,60,120,.1)}
+td{font-size:11px;padding:5px 6px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(60,60,120,.04)}
+tr:hover td{background:rgba(60,60,120,.06)}
+.t-i{color:rgba(104,104,160,.4);font-size:9px;width:20px}
+.t-v{color:var(--cyan)}
+.t-n{text-align:right;font-weight:600}
+.t-b{display:inline-block;height:3px;border-radius:2px;margin-left:6px;vertical-align:middle}
+@media(max-width:900px){.main{grid-template-columns:1fr}.col-r{display:grid;grid-template-columns:repeat(2,1fr)}}
+@media(max-width:600px){.ui{padding:10px;gap:8px}.nav{flex-direction:column;gap:8px;padding:10px}.stats{grid-template-columns:repeat(2,1fr)}.col-r{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
-<div class="nav"><div class="nav-l"><div class="nav-logo">K</div><div class="nav-t">Kuromi <span>/ Attack Telemetry</span></div></div><div class="nav-r"><div class="nav-b"><span class="nav-dot"></span> Capturing</div><div class="nav-p">:2222</div></div></div>
-<div class="app">
+
+<div id="three-canvas"></div>
+<div class="ui">
+<div class="nav">
+<div class="nav-l"><div class="nav-mrk">K</div><div class="nav-t">Kuromi <small>/ Attack Telemetry</small></div></div>
+<div class="nav-r"><div class="nav-st"><span class="nav-p"></span> Capturing</div><div class="nav-port">SSH :2222</div></div>
+</div>
+
+<div class="main">
+<div class="col-l">
 <div class="stats" id="statsRow"></div>
-<div class="cr">
-<div class="cp"><div class="cp-h"><h3>Attack Timeline</h3><span class="t">hourly</span></div><div class="cp-b"><canvas id="c0"></canvas></div></div>
-<div class="cp"><div class="cp-h"><h3>Top Usernames</h3><span class="t">credentials</span></div><div class="cp-b"><canvas id="c1"></canvas></div></div>
-<div class="cp"><div class="cp-h"><h3>Top Passwords</h3><span class="t">credentials</span></div><div class="cp-b"><canvas id="c2"></canvas></div></div>
-</div>
-<div class="tr">
-<div class="tp"><h3>Attacker IPs</h3><div class="ts"><table><thead><tr><th></th><th>IP</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t0"></tbody></table></div></div>
-<div class="tp"><h3>Usernames</h3><div class="ts"><table><thead><tr><th></th><th>User</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t1"></tbody></table></div></div>
-<div class="tp"><h3>Passwords</h3><div class="ts"><table><thead><tr><th></th><th>Password</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t2"></tbody></table></div></div>
-<div class="tp"><h3>Commands</h3><div class="ts"><table><thead><tr><th></th><th>Command</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="t3"></tbody></table></div></div>
+<div class="chart-p">
+<div class="chart-h"><h3>Attack Timeline</h3><span class="tag">last 24h</span></div>
+<div class="chart-b"><canvas id="chartTimeline"></canvas></div>
 </div>
 </div>
-<script>
-const M=[
-{id:"sessions",l:"Sessions",c:"s1"},
-{id:"auth_failed",l:"Failed Logins",c:"s2"},
-{id:"auth_success",l:"Compromised",c:"s3"},
-{id:"commands",l:"Commands",c:"s4"},
-{id:"downloads",l:"Downloads",c:"s5"},
-{id:"unique_ips",l:"Attackers",c:"s6"},
-{id:"unique_usernames",l:"Usernames Tried",c:"s1"},
-{id:"auth_rate",l:"Auth Rate",c:"s6",x:"%"}
-];
-const C={c:"#38bdf8",p:"#ff2d95",u:"#7c3aed"};
-function $(s){return document.querySelector(s)}
-function $$(s){return document.querySelectorAll(s)}
-function anim(e,t,d){if(!e)return;let s=parseInt(e.textContent)||0,o=t-s;if(o===0){e.textContent=t;return}let n=Math.min(Math.abs(o)*2,30),i=0,c=setInterval(()=>{i++;e.textContent=Math.round(s+o*(i/n));if(i>=n){clearInterval(c);e.textContent=t}},d/n)}
-function stats(st){let r=document.getElementById("statsRow"),v=M.map(m=>st[m.id]||0);r.innerHTML=M.map((m,i)=>'<div class="stat"><div class="sn '+m.c+'">0'+(m.x||"")+'</div><div class="sl">'+m.l+"</div></div>").join("");requestAnimationFrame(()=>{$$(".sn").forEach((e,i)=>{if(i<v.length)anim(e,v[i]||0,600)})})}
-function charts(d){
-["c0","c1","c2"].forEach(id=>{let c=document.getElementById(id);if(!c)return;let p=c.parentElement;c.width=p.clientWidth*2;c.height=p.clientHeight*2;c.style.width=p.clientWidth+"px";c.style.height=p.clientHeight+"px"});
-let tl=d.timeline||[];
-new Chart($("#c0"),{type:"line",data:{labels:tl.map(p=>p.hour),datasets:[{data:tl.map(p=>p.count),borderColor:C.c,backgroundColor:function(ctx){let g=ctx.chart.ctx.createLinearGradient(0,0,0,ctx.chart.height);g.addColorStop(0,"rgba(56,189,248,0.12)");g.addColorStop(1,"rgba(56,189,248,0)");return g},borderWidth:1.5,pointRadius:2,fill:true,tension:.3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(56,189,248,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
-let u=d.top_usernames||[];
-new Chart($("#c1"),{type:"bar",data:{labels:u.map(x=>x.username.length>10?x.username.slice(0,10)+"..":x.username),datasets:[{data:u.map(x=>x.count),backgroundColor:"rgba(255,45,149,0.15)",borderColor:C.p,borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(255,45,149,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
-let p=d.top_passwords||[];
-new Chart($("#c2"),{type:"bar",data:{labels:p.map(x=>x.password.length>10?x.password.slice(0,10)+"..":x.password),datasets:[{data:p.map(x=>x.count),backgroundColor:"rgba(124,58,237,0.15)",borderColor:C.u,borderWidth:1,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:"#16161f",titleFont:{family:"JetBrains Mono",size:11},bodyFont:{family:"JetBrains Mono",size:11},borderColor:"rgba(124,58,237,0.2)",borderWidth:1,padding:8}},scales:{y:{beginAtZero:true,grid:{color:"rgba(30,30,46,.4)"},ticks:{color:"#484868",font:{size:9}}},x:{grid:{display:false},ticks:{color:"#484868",font:{size:8}}}}}});
+
+<div class="col-r">
+<div class="panel"><h3>Attacker IPs</h3><div class="p-scroll"><table><thead><tr><th></th><th>IP</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbIP"></tbody></table></div></div>
+<div class="panel"><h3>Usernames</h3><div class="p-scroll"><table><thead><tr><th></th><th>User</th><th style="text-align:right">Cnt</th></tr></thead><tbody id="tbUsers"></tbody></table></div></div>
+</div>
+</div>
+</div>
+
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/"}}</script>
+<script type="module">
+// ============================================================
+// 1. THREE.JS SCENE
+// ============================================================
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/controls/OrbitControls.js';
+
+const container = document.getElementById('three-canvas');
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
+camera.position.set(12, 8, 16);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setSize(container.clientWidth, container.clientHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.setClearColor(0x08080f, 1);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
+
+// Lighting
+const ambient = new THREE.AmbientLight(0x222244, 0.5);
+scene.add(ambient);
+const dirLight = new THREE.DirectionalLight(0x7c3aed, 1.2);
+dirLight.position.set(5, 10, 7);
+scene.add(dirLight);
+const dirLight2 = new THREE.DirectionalLight(0xff2d95, 0.4);
+dirLight2.position.set(-5, -3, -5);
+scene.add(dirLight2);
+const pointLight = new THREE.PointLight(0x38bdf8, 0.6, 30);
+pointLight.position.set(0, 3, 0);
+scene.add(pointLight);
+
+// Grid
+const gridHelper = new THREE.GridHelper(30, 30, 0x7c3aed, 0x1a1a3a);
+gridHelper.position.y = -1.5;
+scene.add(gridHelper);
+
+// Central torus knot (primary data symbol)
+const geo = new THREE.TorusKnotGeometry(1.8, 0.6, 128, 16);
+const mat = new THREE.MeshPhysicalMaterial({
+  color: 0xff2d95, metalness: 0.3, roughness: 0.2,
+  emissive: 0xff2d95, emissiveIntensity: 0.08,
+  transparent: true, opacity: 0.85,
+  wireframe: false,
+});
+const knot = new THREE.Mesh(geo, mat);
+knot.position.y = 0.8;
+scene.add(knot);
+
+// Wireframe overlay
+const wireMat = new THREE.MeshPhysicalMaterial({
+  color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.15,
+});
+const wireKnot = new THREE.Mesh(geo.clone(), wireMat);
+wireKnot.position.copy(knot.position);
+wireKnot.scale.set(1.02, 1.02, 1.02);
+scene.add(wireKnot);
+
+// Orbiting rings
+for (let i = 0; i < 3; i++) {
+  const ringGeo = new THREE.TorusGeometry(2.8 + i * 0.6, 0.02, 16, 64);
+  const ringMat = new THREE.MeshBasicMaterial({
+    color: [0x38bdf8, 0x7c3aed, 0xff2d95][i],
+    transparent: true, opacity: 0.2 + i * 0.1,
+  });
+  const ring = new THREE.Mesh(ringGeo, ringMat);
+  ring.rotation.x = Math.PI / 3 + i * 0.4;
+  ring.rotation.z = i * 0.5;
+  ring.position.y = 0.8;
+  ring.userData.speed = 0.2 + i * 0.1;
+  scene.add(ring);
+  window['ring' + i] = ring;
 }
-function tbl(tid,items,lk,ck,clr){let t=document.getElementById(tid);if(!t)return;let mx=items.length>0?Math.max(...items.map(i=>i[ck])):1;t.innerHTML=items.map((x,i)=>{let p=(x[ck]/mx)*100;return '<tr><td class="ti">'+String(i+1).padStart(2,"0")+'</td><td class="tv">'+x[lk]+'</td><td class="tn">'+x[ck]+'<span class="tb" style="width:'+Math.min(p,60)+'px;background:'+clr+'"></span></td></tr>'}).join("")}
-let loaded=false;
-async function refresh(){try{let r=await fetch("/api/stats"),d=await r.json();if(d.error)return;if(!loaded){stats(d.stats);charts(d);loaded=true}else{let t=[d.stats.sessions,d.stats.auth_failed,d.stats.auth_success,d.stats.commands,d.stats.downloads,d.stats.unique_ips,d.stats.unique_usernames,d.stats.auth_rate];$$(".sn").forEach((e,i)=>{if(i<t.length){let v=t[i]||0;if(parseInt(e.textContent)!==v)anim(e,v,400)}})}tbl("t0",d.top_ips||[],"ip","count","#7c3aed");tbl("t1",d.top_usernames||[],"username","count","#ff2d95");tbl("t2",d.top_passwords||[],"password","count","#38bdf8");tbl("t3",d.top_commands||[],"command","count","#4ade80")}catch(e){console.error(e)}}
-refresh();setInterval(refresh,5000);let rt;window.addEventListener("resize",function(){clearTimeout(rt);rt=setTimeout(refresh,500)});
+
+// Data particle system (attack points)
+const particleCount = 800;
+const positions = new Float32Array(particleCount * 3);
+const colors = new Float32Array(particleCount * 3);
+const sizes = new Float32Array(particleCount);
+for (let i = 0; i < particleCount; i++) {
+  const radius = 4 + Math.random() * 6;
+  const theta = Math.random() * Math.PI * 2;
+  const phi = Math.acos(2 * Math.random() - 1);
+  positions[i * 3] = radius * Math.sin(phi) * Math.cos(theta);
+  positions[i * 3 + 1] = (Math.random() - 0.5) * 6;
+  positions[i * 3 + 2] = radius * Math.sin(phi) * Math.sin(theta);
+  const c = [0x38bdf8, 0x7c3aed, 0xff2d95][Math.floor(Math.random() * 3)];
+  colors[i * 3] = ((c >> 16) & 0xff) / 255;
+  colors[i * 3 + 1] = ((c >> 8) & 0xff) / 255;
+  colors[i * 3 + 2] = (c & 0xff) / 255;
+  sizes[i] = 0.02 + Math.random() * 0.06;
+}
+const particleGeo = new THREE.BufferGeometry();
+particleGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+particleGeo.setAttribute('color', new THREE.BufferAttribute(colors, 3));
+particleGeo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+const particleMat = new THREE.PointsMaterial({
+  size: 0.08, vertexColors: true, transparent: true, opacity: 0.6,
+  blending: THREE.AdditiveBlending, depthWrite: false,
+});
+const particles = new THREE.Points(particleGeo, particleMat);
+scene.add(particles);
+
+// Mouse tracking for parallax
+let mouseX = 0, mouseY = 0;
+document.addEventListener('mousemove', (e) => {
+  mouseX = (e.clientX / window.innerWidth) * 2 - 1;
+  mouseY = -(e.clientY / window.innerHeight) * 2 + 1;
+});
+
+// Animation
+let time = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  time += 0.01;
+
+  // Rotate knot
+  knot.rotation.x += 0.005;
+  knot.rotation.y += 0.008;
+  wireKnot.rotation.copy(knot.rotation);
+
+  // Orbit rings
+  for (let i = 0; i < 3; i++) {
+    const r = window['ring' + i];
+    if (r) { r.rotation.y += r.userData.speed * 0.01; r.rotation.x += 0.002; }
+  }
+
+  // Pulse particles
+  const pos = particles.geometry.attributes.position.array;
+  for (let i = 0; i < particleCount; i++) {
+    const idx = i * 3 + 1;
+    pos[idx] += Math.sin(time * 0.5 + i * 0.1) * 0.002;
+  }
+  particles.geometry.attributes.position.needsUpdate = true;
+
+  // Parallax camera
+  camera.position.x += (mouseX * 2 - camera.position.x + 12) * 0.02;
+  camera.position.z += (mouseY * 1.5 - camera.position.z + 16) * 0.02;
+  camera.lookAt(0, 0.5, 0);
+
+  // Pulse light
+  pointLight.intensity = 0.5 + Math.sin(time * 2) * 0.2;
+
+  renderer.render(scene, camera);
+}
+animate();
+
+// Resize
+window.addEventListener('resize', () => {
+  const w = container.clientWidth, h = container.clientHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+});
+
+// ============================================================
+// 2. DATA STORE (Reactive Proxy)
+// ============================================================
+const store = new Proxy({
+  stats: {}, top_ips: [], top_usernames: [], top_passwords: [], top_commands: [], timeline: [],
+}, {
+  listeners: new Set(),
+  set(target, key, value) {
+    target[key] = value;
+    this.listeners.forEach(fn => fn(key, value));
+    return true;
+  },
+  subscribe(fn) { this.listeners.add(fn); return () => this.listeners.delete(fn); },
+});
+
+// ============================================================
+// 3. KNOT DATA REACTIVITY
+// ============================================================
+store.subscribe((key, val) => {
+  if (key === 'stats' && val.commands) {
+    // Pulse knot intensity based on attack volume
+    const intensity = Math.min(val.commands / 50, 1) * 0.25;
+    knot.material.emissiveIntensity += (intensity - knot.material.emissiveIntensity) * 0.1;
+    knot.material.opacity += (0.85 - intensity * 0.3 - knot.material.opacity) * 0.1;
+  }
+});
+
+// ============================================================
+// 4. UI RENDERERS
+// ============================================================
+const STATS_DEF = [
+  {id:'sessions',l:'Sessions',c:'c-cy'},
+  {id:'auth_failed',l:'Failed Logins',c:'c-rd'},
+  {id:'auth_success',l:'Compromised',c:'c-or'},
+  {id:'commands',l:'Commands',c:'c-pk'},
+  {id:'downloads',l:'Downloads',c:'c-pl'},
+  {id:'unique_ips',l:'Attackers',c:'c-gr'},
+  {id:'unique_usernames',l:'Usernames',c:'c-cy'},
+  {id:'auth_rate',l:'Auth Rate',c:'c-gr',x:'%'},
+];
+
+function renderStats(stats) {
+  const row = document.getElementById('statsRow');
+  if (!row) return;
+  row.innerHTML = STATS_DEF.map(m =>
+    `<div class="st"><div class="st-n ${m.c}">${stats[m.id]||0}${m.x||''}</div><div class="st-l">${m.l}</div></div>`
+  ).join('');
+}
+
+let chartInstance = null;
+function renderTimeline(timeline) {
+  const canvas = document.getElementById('chartTimeline');
+  if (!canvas || !timeline.length) return;
+  const ctx = canvas.getContext('2d');
+  if (chartInstance) chartInstance.destroy();
+
+  const p = canvas.parentElement;
+  canvas.width = p.clientWidth * 2;
+  canvas.height = p.clientHeight * 2;
+  canvas.style.width = p.clientWidth + 'px';
+  canvas.style.height = p.clientHeight + 'px';
+
+  const grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
+  grad.addColorStop(0, 'rgba(56,189,248,0.18)');
+  grad.addColorStop(1, 'rgba(56,189,248,0)');
+
+  chartInstance = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: timeline.map(p => p.hour),
+      datasets: [{
+        data: timeline.map(p => p.count),
+        borderColor: '#38bdf8',
+        backgroundColor: grad,
+        borderWidth: 1.5,
+        pointRadius: 2,
+        pointHoverRadius: 5,
+        fill: true,
+        tension: 0.35,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(22,22,35,.95)', titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, borderColor: 'rgba(56,189,248,.2)', borderWidth: 1, padding: 8 } },
+      scales: {
+        y: { beginAtZero: true, grid: { color: 'rgba(60,60,120,.15)' }, ticks: { color: '#6868a0', font: { size: 9 } } },
+        x: { grid: { display: false }, ticks: { color: '#6868a0', font: { size: 8 } } }
+      }
+    }
+  });
+}
+
+function renderTable(tbodyId, items, labelKey, countKey, color) {
+  const tb = document.getElementById(tbodyId);
+  if (!tb) return;
+  const maxC = items.length ? Math.max(...items.map(i => i[countKey])) : 1;
+  tb.innerHTML = items.map((x, i) => {
+    const pct = (x[countKey] / maxC) * 100;
+    return `<tr><td class="t-i">${String(i+1).padStart(2,'0')}</td><td class="t-v">${x[labelKey]}</td><td class="t-n">${x[countKey]}<span class="t-b" style="width:${Math.min(pct,60)}px;background:${color}"></span></td></tr>`;
+  }).join('');
+}
+
+// ============================================================
+// 5. DATA FETCH
+// ============================================================
+async function fetchData() {
+  try {
+    const r = await fetch('/api/stats');
+    const d = await r.json();
+    if (d.error) return;
+    store.stats = d.stats;
+    store.top_ips = d.top_ips || [];
+    store.top_usernames = d.top_usernames || [];
+    store.top_passwords = d.top_passwords || [];
+    store.top_commands = d.top_commands || [];
+    store.timeline = d.timeline || [];
+
+    renderStats(d.stats);
+    renderTimeline(d.timeline);
+    renderTable('tbIP', d.top_ips || [], 'ip', 'count', '#7c3aed');
+    renderTable('tbUsers', d.top_usernames || [], 'username', 'count', '#ff2d95');
+  } catch (e) { console.error(e); }
+}
+
+fetchData();
+setInterval(fetchData, 5000);
+
+// Window resize for charts
+let rt;
+window.addEventListener('resize', () => {
+  clearTimeout(rt);
+  rt = setTimeout(() => { if (store.timeline.length) renderTimeline(store.timeline); }, 500);
+});
 </script>
 </body>
 </html>
