@@ -10,49 +10,49 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <style>
 *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{--bg:#08080f;--surface:rgba(22,22,35,.75);--border:rgba(60,60,120,.2);--text:#e2e2f0;--dim:#6868a0;--accent:#ff2d95;--cyan:#38bdf8;--purple:#7c3aed;--green:#4ade80;--red:#f87171;--orange:#fb923c}
+:root{--bg:#05050A;--surface:rgba(8,8,24,.35);--border:rgba(0,240,255,.08);--text:#d0d0e8;--dim:#6060a0;--cyan:#00f0ff;--pink:#ff0080;--purple:#7000ff;--green:#00ff87;--red:#ff3355;--orange:#ff8800}
 html{height:100%}
-body{height:100%;overflow:hidden;background:radial-gradient(ellipse at 30% 20%,rgba(124,58,237,.15),transparent 60%),radial-gradient(ellipse at 70% 80%,rgba(255,45,149,.1),transparent 60%),var(--bg);color:var(--text);font-family:'Inter',sans-serif}
+body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:'Inter',sans-serif}
 #three{position:fixed;top:0;left:0;width:100vw;height:100vh;z-index:0}
 .ui{position:relative;z-index:1;height:100vh;display:flex;flex-direction:column;padding:16px 24px;gap:12px;pointer-events:none}
 .ui>*{pointer-events:auto}
-.nav{display:flex;justify-content:space-between;align-items:center;padding:12px 20px;background:var(--surface);border:1px solid var(--border);border-radius:14px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-.nav-l{display:flex;align-items:center;gap:14px}
-.nav-m{width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,var(--accent),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:16px;color:#fff}
-.nav-t{font-size:15px;font-weight:600}
-.nav-t small{color:var(--dim);font-weight:400;font-size:13px}
-.nav-r{display:flex;align-items:center;gap:12px}
-.nav-st{display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:8px;font-size:11px;font-family:'JetBrains Mono',monospace;background:rgba(74,222,128,.08);color:var(--green);border:1px solid rgba(74,222,128,.12)}
-.nav-d{width:6px;height:6px;border-radius:50%;background:var(--green);box-shadow:0 0 8px var(--green)}
-.nav-p{padding:4px 12px;border-radius:8px;font-size:11px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(56,189,248,.06);border:1px solid rgba(56,189,248,.1)}
-.main{flex:1;display:grid;grid-template-columns:1fr 320px;gap:12px;min-height:0}
-.cl{display:flex;flex-direction:column;gap:12px}
-.cr{display:flex;flex-direction:column;gap:12px}
-.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.st{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px 16px;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-.st:hover{border-color:rgba(60,60,120,.4)}
-.st-n{font-family:'JetBrains Mono',monospace;font-size:22px;font-weight:700;font-feature-settings:'tnum'1}
-.st-l{font-size:11px;color:var(--dim);margin-top:3px}
-.c0{color:var(--cyan)}.c1{color:var(--red)}.c2{color:var(--orange)}.c3{color:var(--accent)}.c4{color:var(--purple)}.c5{color:var(--green)}
-.cp{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:16px;flex:1;display:flex;flex-direction:column;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
-.cp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px}
-.cp-h h3{font-size:12px;font-weight:600;color:var(--dim);letter-spacing:.4px;text-transform:uppercase}
+.nav{display:flex;justify-content:space-between;align-items:center;padding:10px 18px;background:rgba(8,8,24,.5);border:1px solid var(--border);border-radius:12px;box-shadow:0 0 20px rgba(0,240,255,.03)}
+.nav-l{display:flex;align-items:center;gap:12px}
+.nav-m{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,var(--cyan),var(--purple));display:flex;align-items:center;justify-content:center;font-family:'JetBrains Mono',monospace;font-weight:700;font-size:15px;color:#fff;text-shadow:0 0 12px rgba(0,240,255,.4)}
+.nav-t{font-size:14px;font-weight:600;background:linear-gradient(90deg,var(--cyan),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.nav-t small{color:var(--dim);font-weight:400;font-size:12px;-webkit-text-fill-color:var(--dim)}
+.nav-r{display:flex;align-items:center;gap:10px}
+.nav-st{display:flex;align-items:center;gap:6px;padding:4px 12px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;background:rgba(0,255,135,.06);color:var(--green);border:1px solid rgba(0,255,135,.1);text-shadow:0 0 10px rgba(0,255,135,.2)}
+.nav-d{width:5px;height:5px;border-radius:50%;background:var(--green);box-shadow:0 0 10px var(--green),0 0 20px var(--green)}
+.nav-p{padding:3px 10px;border-radius:6px;font-size:10px;font-family:'JetBrains Mono',monospace;color:var(--dim);background:rgba(0,240,255,.04);border:1px solid rgba(0,240,255,.06)}
+.main{flex:1;display:grid;grid-template-columns:1fr 300px;gap:10px;min-height:0}
+.cl{display:flex;flex-direction:column;gap:10px}
+.cr{display:flex;flex-direction:column;gap:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.st{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px 14px;transition:border-color .3s,border-shadow .3s}
+.st:hover{border-color:rgba(0,240,255,.2);box-shadow:0 0 25px rgba(0,240,255,.05)}
+.st-n{font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:700;font-feature-settings:'tnum'1;text-shadow:0 0 20px currentColor}
+.st-l{font-size:10px;color:var(--dim);margin-top:2px;letter-spacing:0.5px}
+.c0{color:var(--cyan)}.c1{color:var(--red)}.c2{color:var(--orange)}.c3{color:var(--pink)}.c4{color:var(--purple)}.c5{color:var(--green)}
+.cp{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:14px;flex:1;display:flex;flex-direction:column}
+.cp-h{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px}
+.cp-h h3{font-size:10px;font-weight:600;color:var(--dim);letter-spacing:1px;text-transform:uppercase}
 .cp-b{flex:1;position:relative;min-height:0}
 .cp-b canvas{width:100%!important;height:100%!important}
-.pn{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:14px;flex:1;display:flex;flex-direction:column;backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px)}
+.pn{background:var(--surface);border:1px solid var(--border);border-radius:10px;padding:12px;flex:1;display:flex;flex-direction:column}
 .pn:last-child{flex:0.7}
-.pn h3{font-size:10px;font-weight:600;color:var(--dim);letter-spacing:.4px;text-transform:uppercase;margin-bottom:8px}
+.pn h3{font-size:9px;font-weight:600;color:var(--dim);letter-spacing:1px;text-transform:uppercase;margin-bottom:6px}
 .ps{flex:1;overflow-y:auto;min-height:0}
-.ps::-webkit-scrollbar{width:3px}
-.ps::-webkit-scrollbar-thumb{background:rgba(104,104,160,.2);border-radius:2px}
+.ps::-webkit-scrollbar{width:2px}
+.ps::-webkit-scrollbar-thumb{background:rgba(0,240,255,.15);border-radius:2px}
 table{width:100%;border-collapse:collapse}
-th{font-size:9px;color:rgba(104,104,160,.4);font-weight:500;padding:4px 6px;text-align:left;font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:var(--surface);border-bottom:1px solid rgba(60,60,120,.1)}
-td{font-size:11px;padding:5px 6px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(60,60,120,.04)}
-tr:hover td{background:rgba(60,60,120,.06)}
-.ti{color:rgba(104,104,160,.4);font-size:9px;width:20px}
-.tv{color:var(--cyan)}
-.tn{text-align:right;font-weight:600}
-.tb{display:inline-block;height:3px;border-radius:2px;margin-left:6px;vertical-align:middle}
+th{font-size:8px;color:rgba(96,96,160,.3);font-weight:500;padding:3px 5px;text-align:left;font-family:'JetBrains Mono',monospace;position:sticky;top:0;background:var(--surface);border-bottom:1px solid rgba(0,240,255,.05)}
+td{font-size:10px;padding:4px 5px;font-family:'JetBrains Mono',monospace;border-bottom:1px solid rgba(0,240,255,.025)}
+tr:hover td{background:rgba(0,240,255,.04)}
+.ti{color:rgba(96,96,160,.3);font-size:8px;width:18px}
+.tv{color:var(--cyan);text-shadow:0 0 10px rgba(0,240,255,.15)}
+.tn{text-align:right;font-weight:600;color:var(--text)}
+.tb{display:inline-block;height:2px;border-radius:1px;margin-left:4px;vertical-align:middle;box-shadow:0 0 6px currentColor}
 @media(max-width:900px){.main{grid-template-columns:1fr}}
 @media(max-width:600px){.ui{padding:10px;gap:8px}.nav{flex-direction:column;gap:8px}.stats{grid-template-columns:repeat(2,1fr)}}
 </style>
@@ -89,97 +89,333 @@ tr:hover td{background:rgba(60,60,120,.06)}
 <script>
 (function() {
   var container = document.getElementById('three');
-  if (!container) return;
+  if (!container || !THREE) return;
   var W = container.clientWidth, H = container.clientHeight;
 
   var scene = new THREE.Scene();
-  var camera = new THREE.PerspectiveCamera(45, W / H, 0.1, 1000);
-  camera.position.set(10, 6, 14);
+  scene.fog = new THREE.FogExp2(0x05050A, 0.012);
+
+  var camera = new THREE.PerspectiveCamera(50, W / H, 0.1, 1000);
+  camera.position.set(9, 5, 12);
 
   var renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(W, H);
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-  renderer.setClearColor(0x08080f, 1);
+  renderer.setClearColor(0x05050A, 1);
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
-  renderer.toneMappingExposure = 1.2;
+  renderer.toneMappingExposure = 1.5;
   container.appendChild(renderer.domElement);
 
-  scene.add(new THREE.AmbientLight(0x222244, 0.5));
-  var dl = new THREE.DirectionalLight(0x7c3aed, 1.2); dl.position.set(5, 10, 7); scene.add(dl);
-  var dl2 = new THREE.DirectionalLight(0xff2d95, 0.4); dl2.position.set(-5, -3, -5); scene.add(dl2);
-  var pl = new THREE.PointLight(0x38bdf8, 0.6, 30); pl.position.set(0, 3, 0); scene.add(pl);
+  // LIGHTS
+  var ambient = new THREE.AmbientLight(0x222244, 0.3);
+  scene.add(ambient);
 
-  var grid = new THREE.GridHelper(30, 30, 0x7c3aed, 0x1a1a3a);
-  grid.position.y = -1.5; scene.add(grid);
+  var dl = new THREE.DirectionalLight(0x00f0ff, 1.2);
+  dl.position.set(5, 12, 8);
+  scene.add(dl);
 
-  var geo = new THREE.TorusKnotGeometry(1.8, 0.6, 128, 16);
-  var mat = new THREE.MeshPhysicalMaterial({ color: 0xff2d95, metalness: 0.3, roughness: 0.2, emissive: 0xff2d95, emissiveIntensity: 0.08, transparent: true, opacity: 0.85 });
-  var knot = new THREE.Mesh(geo, mat);
-  knot.position.y = 0.8; scene.add(knot);
+  var dl2 = new THREE.DirectionalLight(0xff0080, 0.5);
+  dl2.position.set(-6, -2, -6);
+  scene.add(dl2);
 
-  var wm = new THREE.MeshPhysicalMaterial({ color: 0x38bdf8, wireframe: true, transparent: true, opacity: 0.15 });
-  var wk = new THREE.Mesh(geo.clone(), wm);
-  wk.position.copy(knot.position); wk.scale.set(1.02, 1.02, 1.02); scene.add(wk);
+  var pl = new THREE.PointLight(0x00f0ff, 1.2, 25);
+  pl.position.set(2, 3, 2);
+  scene.add(pl);
 
-  var rings = [];
-  for (var i = 0; i < 3; i++) {
-    var rg = new THREE.TorusGeometry(2.8 + i * 0.6, 0.03, 16, 64);
-    var rm = new THREE.MeshBasicMaterial({ color: [0x38bdf8, 0x7c3aed, 0xff2d95][i], transparent: true, opacity: 0.25 + i * 0.08 });
+  // BACKGROUND STARS
+  var starCount = 2000, sp = new Float32Array(starCount * 3);
+  for (var i = 0; i < starCount; i++) {
+    var r = 80 + Math.random() * 120, theta = Math.random() * Math.PI * 2, phi = Math.acos(2 * Math.random() - 1);
+    sp[i*3] = r * Math.sin(phi) * Math.cos(theta);
+    sp[i*3+1] = r * Math.sin(phi) * Math.sin(theta);
+    sp[i*3+2] = r * Math.cos(phi);
+  }
+  var sg = new THREE.BufferGeometry();
+  sg.setAttribute('position', new THREE.BufferAttribute(sp, 3));
+  var sm = new THREE.PointsMaterial({ color: 0x404080, size: 0.15, transparent: true, opacity: 0.6, blending: THREE.AdditiveBlending, depthWrite: false });
+  scene.add(new THREE.Points(sg, sm));
+
+  // CENTRAL TORUS KNOT
+  var kg = new THREE.TorusKnotGeometry(1.6, 0.55, 160, 20);
+  var km = new THREE.MeshPhysicalMaterial({
+    color: 0x00f0ff, metalness: 0.4, roughness: 0.15,
+    emissive: 0x00f0ff, emissiveIntensity: 0.15,
+    clearcoat: 0.3
+  });
+  var knot = new THREE.Mesh(kg, km);
+  knot.position.y = 0.5;
+  scene.add(knot);
+
+  // WIREFRAME KNOT (glowing, slightly larger, rotates opposite)
+  var wkMat = new THREE.MeshBasicMaterial({
+    color: 0xff0080, wireframe: true, transparent: true, opacity: 0.12
+  });
+  var wk = new THREE.Mesh(kg.clone(), wkMat);
+  wk.position.copy(knot.position);
+  wk.scale.set(1.06, 1.06, 1.06);
+  scene.add(wk);
+
+  // SECOND WIREFRAME (cyan, inner)
+  var wkMat2 = new THREE.MeshBasicMaterial({
+    color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.06
+  });
+  var wk2 = new THREE.Mesh(kg.clone(), wkMat2);
+  wk2.position.copy(knot.position);
+  wk2.scale.set(0.97, 0.97, 0.97);
+  scene.add(wk2);
+
+  // GLOW SPHERE behind knot
+  var glowGeo = new THREE.SphereGeometry(2.4, 16, 16);
+  var glowMat = new THREE.MeshBasicMaterial({
+    color: 0x00f0ff, transparent: true, opacity: 0.04,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  var glowSphere = new THREE.Mesh(glowGeo, glowMat);
+  glowSphere.position.copy(knot.position);
+  scene.add(glowSphere);
+
+  // ORBITING RINGS (4)
+  var rings = [], ringColors = [0x00f0ff, 0xff0080, 0x7000ff, 0x00ff87];
+  for (var i = 0; i < 4; i++) {
+    var rg = new THREE.TorusGeometry(2.6 + i * 0.7, 0.02, 16, 80);
+    var rm = new THREE.MeshBasicMaterial({
+      color: ringColors[i], transparent: true, opacity: 0.15 + i * 0.05,
+      blending: THREE.AdditiveBlending
+    });
     var ring = new THREE.Mesh(rg, rm);
-    ring.rotation.x = Math.PI / 3 + i * 0.4; ring.rotation.z = i * 0.5;
-    ring.position.y = 0.8; ring.userData = { speed: 0.2 + i * 0.1 };
-    scene.add(ring); rings.push(ring);
+    ring.rotation.x = Math.PI / 2.5 + i * 0.3;
+    ring.rotation.z = i * 0.4;
+    ring.position.y = 0.5;
+    ring.userData = { speed: 0.15 + i * 0.08, phase: i * 1.2 };
+    scene.add(ring);
+    rings.push(ring);
+
+    // Second ring at different angle for each
+    var rg2 = new THREE.TorusGeometry(2.6 + i * 0.7, 0.01, 12, 60);
+    var rm2 = new THREE.MeshBasicMaterial({
+      color: ringColors[(i+2)%4], transparent: true, opacity: 0.06,
+      blending: THREE.AdditiveBlending
+    });
+    var ring2 = new THREE.Mesh(rg2, rm2);
+    ring2.rotation.x = -Math.PI / 3 + i * 0.25;
+    ring2.rotation.z = Math.PI / 4 + i * 0.3;
+    ring2.position.y = 0.5;
+    ring2.userData = { speed: -0.1 - i * 0.05, phase: i * 0.8 };
+    scene.add(ring2);
+    rings.push(ring2);
   }
 
-  var pc = 600, pos = new Float32Array(pc * 3), cols = new Float32Array(pc * 3);
-  var palette = [new THREE.Color(0x38bdf8), new THREE.Color(0x7c3aed), new THREE.Color(0xff2d95)];
+  // CONSTELLATION PARTICLES (500) with dynamic connecting lines
+  var pc = 500, pos = new Float32Array(pc * 3), vels = new Float32Array(pc * 3);
+  var cols = new Float32Array(pc * 3);
+  var palette = [
+    new THREE.Color(0x00f0ff), new THREE.Color(0xff0080),
+    new THREE.Color(0x7000ff), new THREE.Color(0x00ff87)
+  ];
   for (var i = 0; i < pc; i++) {
-    var r = 4 + Math.random() * 6, t = Math.random() * Math.PI * 2, p = Math.acos(2 * Math.random() - 1);
-    pos[i*3] = r * Math.sin(p) * Math.cos(t); pos[i*3+1] = (Math.random() - 0.5) * 6; pos[i*3+2] = r * Math.sin(p) * Math.sin(t);
-    var c = palette[Math.floor(Math.random() * 3)];
+    var r = 3.5 + Math.random() * 5, theta = Math.random() * Math.PI * 2, phi = Math.acos(2 * Math.random() - 1);
+    pos[i*3] = r * Math.sin(phi) * Math.cos(theta);
+    pos[i*3+1] = r * Math.cos(phi) * 0.8;
+    pos[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+    vels[i*3] = (Math.random() - 0.5) * 0.002;
+    vels[i*3+1] = (Math.random() - 0.5) * 0.002;
+    vels[i*3+2] = (Math.random() - 0.5) * 0.002;
+    var c = palette[Math.floor(Math.random() * 4)];
     cols[i*3] = c.r; cols[i*3+1] = c.g; cols[i*3+2] = c.b;
   }
   var pg = new THREE.BufferGeometry();
   pg.setAttribute('position', new THREE.BufferAttribute(pos, 3));
   pg.setAttribute('color', new THREE.BufferAttribute(cols, 3));
-  var pm = new THREE.PointsMaterial({ size: 0.08, vertexColors: true, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false });
-  var pts = new THREE.Points(pg, pm); scene.add(pts);
+  var pm = new THREE.PointsMaterial({
+    size: 0.08, vertexColors: true, transparent: true, opacity: 0.7,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    sizeAttenuation: true
+  });
+  var pts = new THREE.Points(pg, pm);
+  scene.add(pts);
 
-  var mx = 0, my = 0;
+  // CONNECTING LINES between nearby particles
+  var lineGeo = new THREE.BufferGeometry();
+  var maxLines = 300;
+  var lpos = new Float32Array(maxLines * 6); // 2 vertices per line
+  var lcol = new Float32Array(maxLines * 6);
+  var lineMat = new THREE.LineBasicMaterial({
+    vertexColors: true, transparent: true, opacity: 0.12,
+    blending: THREE.AdditiveBlending
+  });
+  lineGeo.setAttribute('position', new THREE.BufferAttribute(lpos, 3));
+  lineGeo.setAttribute('color', new THREE.BufferAttribute(lcol, 3));
+  lineGeo.setDrawRange(0, 0);
+  var lines = new THREE.LineSegments(lineGeo, lineMat);
+  scene.add(lines);
+
+  function updateLines() {
+    var ppos = pts.geometry.attributes.position.array;
+    var pcols = pts.geometry.attributes.color.array;
+    var count = 0;
+    for (var i = 0; i < pc && count < maxLines; i++) {
+      for (var j = i + 1; j < pc && count < maxLines; j++) {
+        var dx = ppos[i*3] - ppos[j*3], dy = ppos[i*3+1] - ppos[j*3+1], dz = ppos[i*3+2] - ppos[j*3+2];
+        var dist = Math.sqrt(dx*dx + dy*dy + dz*dz);
+        if (dist < 1.8 && dist > 0) {
+          var idx = count * 6;
+          lpos[idx] = ppos[i*3]; lpos[idx+1] = ppos[i*3+1]; lpos[idx+2] = ppos[i*3+2];
+          lpos[idx+3] = ppos[j*3]; lpos[idx+4] = ppos[j*3+1]; lpos[idx+5] = ppos[j*3+2];
+          lcol[idx] = pcols[i*3]; lcol[idx+1] = pcols[i*3+1]; lcol[idx+2] = pcols[i*3+2];
+          lcol[idx+3] = pcols[j*3]; lcol[idx+4] = pcols[j*3+1]; lcol[idx+5] = pcols[j*3+2];
+          count++;
+        }
+      }
+    }
+    lineGeo.setDrawRange(0, count * 2);
+    lineGeo.attributes.position.needsUpdate = true;
+    lineGeo.attributes.color.needsUpdate = true;
+  }
+
+  // ORBITING ICOSAHEDRONS
+  var orbiters = [];
+  var oConfigs = [
+    { color: 0xff0080, radius: 4.0, speed: 0.3, size: 0.25, phase: 0 },
+    { color: 0x00f0ff, radius: 3.0, speed: -0.4, size: 0.2, phase: 1.5 },
+    { color: 0x00ff87, radius: 5.2, speed: 0.2, size: 0.18, phase: 3.0 },
+    { color: 0x7000ff, radius: 3.8, speed: -0.25, size: 0.15, phase: 4.5 },
+    { color: 0xff0080, radius: 5.8, speed: 0.15, size: 0.12, phase: 2.0 }
+  ];
+  for (var i = 0; i < oConfigs.length; i++) {
+    var cfg = oConfigs[i];
+    var og = new THREE.IcosahedronGeometry(cfg.size, 0);
+    var om = new THREE.MeshPhysicalMaterial({
+      color: cfg.color, emissive: cfg.color, emissiveIntensity: 0.3,
+      metalness: 0.6, roughness: 0.2, transparent: true, opacity: 0.85
+    });
+    var orb = new THREE.Mesh(og, om);
+    orb.position.set(cfg.radius, 0.5 + (Math.random() - 0.5) * 0.5, 0);
+    orb.userData = cfg;
+    scene.add(orb);
+    orbiters.push(orb);
+
+    // Glow halo for each orbiter
+    var hg = new THREE.SphereGeometry(cfg.size * 2.5, 8, 8);
+    var hm = new THREE.MeshBasicMaterial({
+      color: cfg.color, transparent: true, opacity: 0.08,
+      blending: THREE.AdditiveBlending, depthWrite: false
+    });
+    var halo = new THREE.Mesh(hg, hm);
+    halo.position.copy(orb.position);
+    orb.userData.halo = halo;
+    scene.add(halo);
+  }
+
+  // GRID
+  var grid = new THREE.GridHelper(25, 25, 0x00f0ff, 0x001a2a);
+  grid.position.y = -1.8;
+  grid.material.transparent = true;
+  grid.material.opacity = 0.15;
+  scene.add(grid);
+
+  // MOUSE TRACKING
+  var mx = 0, my = 0, tx = 0, ty = 0;
   document.addEventListener('mousemove', function(e) {
     mx = (e.clientX / window.innerWidth) * 2 - 1;
     my = -(e.clientY / window.innerHeight) * 2 + 1;
   });
 
+  // ANIMATION
   var t = 0;
   function anim() {
     requestAnimationFrame(anim);
-    t += 0.01;
-    knot.rotation.x += 0.005; knot.rotation.y += 0.008;
-    wk.rotation.copy(knot.rotation);
-    for (var i = 0; i < rings.length; i++) rings[i].rotation.y += rings[i].userData.speed * 0.01;
+    t += 0.008;
+
+    // Torus knot rotation
+    knot.rotation.x += 0.004;
+    knot.rotation.y += 0.007;
+    knot.rotation.z += 0.002;
+
+    // Wireframe counter-rotation
+    wk.rotation.x -= 0.002;
+    wk.rotation.y += 0.01;
+    wk.rotation.z += 0.003;
+
+    wk2.rotation.x += 0.005;
+    wk2.rotation.y -= 0.006;
+    wk2.rotation.z -= 0.002;
+
+    // Pulse glow sphere
+    glowSphere.scale.setScalar(1 + Math.sin(t * 1.5) * 0.06);
+    glowMat.opacity = 0.03 + Math.sin(t * 1.5) * 0.015;
+
+    // Pulse knot emissive
+    km.emissiveIntensity = 0.12 + Math.sin(t * 1.2) * 0.06;
+
+    // Rings rotation
+    for (var i = 0; i < rings.length; i++) {
+      var r = rings[i];
+      r.rotation.y += r.userData.speed * 0.008;
+      r.rotation.x += Math.sin(t * 0.3 + r.userData.phase) * 0.0003;
+    }
+
+    // Particles drift
     var ppos = pts.geometry.attributes.position.array;
-    for (var i = 0; i < pc; i++) ppos[i*3+1] += Math.sin(t * 0.5 + i * 0.1) * 0.002;
+    var pcols = pts.geometry.attributes.color.array;
+    for (var i = 0; i < pc; i++) {
+      ppos[i*3] += vels[i*3] + Math.sin(t * 0.2 + i * 0.05) * 0.0003;
+      ppos[i*3+1] += vels[i*3+1] + Math.cos(t * 0.15 + i * 0.07) * 0.0003;
+      ppos[i*3+2] += vels[i*3+2] + Math.sin(t * 0.25 + i * 0.03) * 0.0003;
+
+      // Keep within bounds
+      for (var a = 0; a < 3; a++) {
+        if (Math.abs(ppos[i*3 + a]) > 6) vels[i*3 + a] *= -1;
+      }
+    }
     pts.geometry.attributes.position.needsUpdate = true;
-    camera.position.x += (mx * 2 - camera.position.x + 10) * 0.02;
-    camera.position.z += (my * 1.5 - camera.position.z + 14) * 0.02;
-    camera.lookAt(0, 0.5, 0);
-    pl.intensity = 0.5 + Math.sin(t * 2) * 0.2;
+    updateLines();
+
+    // Orbiters
+    for (var i = 0; i < orbiters.length; i++) {
+      var o = orbiters[i], cfg = o.userData;
+      var angle = t * cfg.speed + cfg.phase;
+      o.position.x = Math.cos(angle) * cfg.radius;
+      o.position.z = Math.sin(angle) * cfg.radius;
+      o.position.y = 0.5 + Math.sin(t * cfg.speed * 2 + cfg.phase) * 0.4;
+      o.rotation.x += 0.03;
+      o.rotation.y += 0.05;
+      if (cfg.halo) {
+        cfg.halo.position.copy(o.position);
+        cfg.halo.scale.setScalar(1 + Math.sin(t * 2 + i) * 0.1);
+      }
+    }
+
+    // Point light orbits
+    pl.position.x = Math.cos(t * 0.5) * 5;
+    pl.position.z = Math.sin(t * 0.5) * 5;
+    pl.position.y = 2 + Math.sin(t * 0.7) * 1;
+    pl.intensity = 0.8 + Math.sin(t * 1.5) * 0.4;
+
+    // Camera smooth follow
+    tx += (mx - tx) * 0.03;
+    ty += (my - ty) * 0.03;
+    camera.position.x = 9 + tx * 3;
+    camera.position.y = 5 + ty * 2;
+    camera.position.z = 12 + tx * 2;
+    camera.lookAt(0, 0.3, 0);
+
     renderer.render(scene, camera);
   }
   anim();
 
+  // RESIZE
   window.addEventListener('resize', function() {
     var w = container.clientWidth, h = container.clientHeight;
-    camera.aspect = w / h; camera.updateProjectionMatrix();
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
     renderer.setSize(w, h);
   });
 })();
 </script>
 <script>
 var D = [
-  {id:'sessions',l:'Sessions',c:'c0'},{id:'auth_failed',l:'Failed',c:'c1'},{id:'auth_success',l:'Compromised',c:'c2'},{id:'commands',l:'Commands',c:'c3'},
-  {id:'downloads',l:'Downloads',c:'c4'},{id:'unique_ips',l:'Attackers',c:'c5'},{id:'unique_usernames',l:'Usernames',c:'c0'},{id:'auth_rate',l:'Auth Rate',c:'c5',x:'%'}
+  {id:'sessions',l:'SESSIONS',c:'c0'},{id:'auth_failed',l:'FAILED',c:'c1'},{id:'auth_success',l:'COMPROMISED',c:'c2'},{id:'commands',l:'COMMANDS',c:'c3'},
+  {id:'downloads',l:'DOWNLOADS',c:'c4'},{id:'unique_ips',l:'ATTACKERS',c:'c5'},{id:'unique_usernames',l:'USERNAMES',c:'c0'},{id:'auth_rate',l:'AUTH RATE',c:'c5',x:'%'}
 ];
 var chartInstance = null;
 
@@ -202,21 +438,21 @@ function renderTimeline(timeline) {
   canvas.style.height = parent.clientHeight + 'px';
   var ctx = canvas.getContext('2d');
   var grad = ctx.createLinearGradient(0, 0, 0, canvas.height);
-  grad.addColorStop(0, 'rgba(56,189,248,0.18)');
-  grad.addColorStop(1, 'rgba(56,189,248,0)');
+  grad.addColorStop(0, 'rgba(0,240,255,0.15)');
+  grad.addColorStop(1, 'rgba(0,240,255,0)');
   chartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: timeline.map(function(p) { return p.hour; }),
       datasets: [{
         data: timeline.map(function(p) { return p.count; }),
-        borderColor: '#38bdf8', backgroundColor: grad, borderWidth: 1.5,
-        pointRadius: 2, fill: true, tension: 0.35
+        borderColor: '#00f0ff', backgroundColor: grad, borderWidth: 1.5,
+        pointRadius: 0, fill: true, tension: 0.4
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(22,22,35,.95)', titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, borderColor: 'rgba(56,189,248,.2)', borderWidth: 1, padding: 8 } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: 'rgba(5,5,12,.95)', titleFont: { family: 'JetBrains Mono', size: 11 }, bodyFont: { family: 'JetBrains Mono', size: 11 }, borderColor: 'rgba(0,240,255,.15)', borderWidth: 1, padding: 8 } },
       scales: {
         y: { beginAtZero: true, grid: { color: 'rgba(60,60,120,.15)' }, ticks: { color: '#6868a0', font: { size: 9 } } },
         x: { grid: { display: false }, ticks: { color: '#6868a0', font: { size: 8 } } }
@@ -242,8 +478,8 @@ function refresh() {
       if (d.error) return;
       renderStats(d.stats);
       renderTimeline(d.timeline);
-      fillTable('t0', d.top_ips || [], 'ip', 'count', '#7c3aed');
-      fillTable('t1', d.top_usernames || [], 'username', 'count', '#ff2d95');
+      fillTable('t0', d.top_ips || [], 'ip', 'count', '#00f0ff');
+      fillTable('t1', d.top_usernames || [], 'username', 'count', '#ff0080');
     })
     .catch(function(e) { console.error(e); });
 }
