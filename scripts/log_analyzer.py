@@ -247,10 +247,11 @@ def print_report(analyzer: CowrieAnalyzer):
 
 
 def main():
-    log_path = "C:/Users/kanth/honeypot-project/docker/cowrie/var/log/cowrie/cowrie.json"
-
-    if len(sys.argv) > 1:
-        log_path = sys.argv[1]
+    default_log = str(
+        Path(__file__).resolve().parent.parent
+        / "docker" / "cowrie" / "var" / "log" / "cowrie" / "cowrie.json"
+    )
+    log_path = sys.argv[1] if len(sys.argv) > 1 else default_log
 
     events = load_logs(log_path)
     analyzer = CowrieAnalyzer(events)

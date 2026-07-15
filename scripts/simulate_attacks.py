@@ -105,8 +105,9 @@ def simulate_attack(attacker: dict):
 
 
 def main():
-    log_path = Path(
-        "C:/Users/kanth/honeypot-project/docker/cowrie/var/log/cowrie/cowrie.json"
+    log_path = (
+        Path(__file__).resolve().parent.parent
+        / "docker" / "cowrie" / "var" / "log" / "cowrie" / "cowrie.json"
     )
     initial_size = log_path.stat().st_size if log_path.exists() else 0
 

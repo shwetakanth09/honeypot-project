@@ -2,7 +2,10 @@ import json
 import sys
 from pathlib import Path
 
-log_path = Path("C:/Users/kanth/honeypot-project/docker/cowrie/var/log/cowrie/cowrie.json")
+log_path = (
+    Path(__file__).resolve().parent.parent
+    / "docker" / "cowrie" / "var" / "log" / "cowrie" / "cowrie.json"
+)
 
 if not log_path.exists():
     print(f"Log file not found: {log_path}")

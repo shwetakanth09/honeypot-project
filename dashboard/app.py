@@ -1,6 +1,7 @@
 """Kuromi Dashboard — Cyberpunk attack telemetry visualization."""
 
 import json
+import os
 from collections import Counter
 from datetime import datetime
 from pathlib import Path
@@ -9,9 +10,12 @@ from flask import Flask, jsonify, render_template
 
 app = Flask(__name__)
 
-LOG_PATH = Path(
-    "C:/Users/kanth/honeypot-project/docker/cowrie/var/log/cowrie/cowrie.json"
-)
+_PROJECT_ROOT = Path(__file__).resolve().parent.parent
+
+LOG_PATH = Path(os.environ.get(
+    "COWRIE_LOG",
+    _PROJECT_ROOT / "docker" / "cowrie" / "var" / "log" / "cowrie" / "cowrie.json"
+))
 
 
 def load_events():

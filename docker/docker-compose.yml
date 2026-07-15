@@ -23,6 +23,21 @@ services:
     networks:
       - honeynet
 
+  dashboard:
+    build: ../dashboard
+    container_name: kuromi-dashboard
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./cowrie/var/log/cowrie:/data:ro
+    environment:
+      - COWRIE_LOG=/data/cowrie.json
+    depends_on:
+      - cowrie
+    networks:
+      - honeynet
+
 networks:
   honeynet:
     driver: bridge
