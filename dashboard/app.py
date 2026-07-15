@@ -110,7 +110,7 @@ def analyze():
             "downloads": downloads,
             "unique_ips": len(ip_counter),
             "unique_usernames": len(username_counter),
-            "unique_passwords": len(username_counter),
+            "unique_passwords": len(password_counter),
             "auth_rate": auth_rate,
         },
         "top_ips": [
